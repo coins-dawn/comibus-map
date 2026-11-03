@@ -224,17 +224,28 @@ function artSVG(card, F, W, H) {
     <g fill="none" stroke-width="1.3" stroke-linejoin="round" stroke-linecap="round" opacity=".8" style="mix-blend-mode:multiply">${paths}</g></svg>`;
 }
 
-// 路線の形（注記なし）
-function shapeSVG(card, W, H, stroke) {
-  const pts = card.thumb.flat();
+// 路線の形（注記なし）。路線ごとに色を分け、便がいちばん多いバス停に丸を付ける
+function shapeSVG(card, F, W, H) {
+  const P = palette(card);
+  const ls = F.shape || [];
+  const pts = ls.flatMap((l) => l[1]);
   if (!pts.length) return '';
   const lat0 = pts.reduce((a, p) => a + p[0], 0) / pts.length, k = Math.cos(lat0 * Math.PI / 180);
   const xs = pts.map((p) => p[1] * k), ys = pts.map((p) => p[0]);
   const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
-  const s = Math.min((W - 16) / (x1 - x0 || 1e-6), (H - 16) / (y1 - y0 || 1e-6));
+  const pad = 14, s = Math.min((W - 2 * pad) / (x1 - x0 || 1e-6), (H - 2 * pad) / (y1 - y0 || 1e-6));
   const ox = (W - (x1 - x0) * s) / 2, oy = (H - (y1 - y0) * s) / 2;
-  const d = card.thumb.map((l) => l.map((p, i) => `${i ? 'L' : 'M'}${(ox + (p[1] * k - x0) * s).toFixed(1)} ${(H - oy - (p[0] - y0) * s).toFixed(1)}`).join('')).join('');
-  return `<svg viewBox="0 0 ${W} ${H}" class="shape" aria-hidden="true"><path d="${d}" fill="none" stroke="${stroke}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  const X = (p) => (ox + (p[1] * k - x0) * s).toFixed(1), Y = (p) => (H - oy - (p[0] - y0) * s).toFixed(1);
+  const d = (l) => l.map((p, i) => `${i ? 'L' : 'M'}${X(p)} ${Y(p)}`).join('');
+  // 長い線から先に描き、短い線（枝）を上に重ねる
+  const order = ls.slice().sort((a, b) => b[1].length - a[1].length);
+  const halo = order.map((l) => `<path d="${d(l[1])}"/>`).join('');
+  const body = order.map((l) => `<path d="${d(l[1])}" stroke="${P.lines[l[0] % P.lines.length]}"/>`).join('');
+  const hub = F.stops.find((x) => x[0] === card.hub);
+  const hubDot = hub ? `<circle cx="${X([hub[1], hub[2]])}" cy="${Y([hub[1], hub[2]])}" r="5" fill="#fff" stroke="${P.ink}" stroke-width="2.4"/>` : '';
+  return `<svg viewBox="0 0 ${W} ${H}" class="shape" aria-hidden="true">
+    <g fill="none" stroke="#fff" stroke-opacity=".9" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round">${halo}</g>
+    <g fill="none" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">${body}</g>${hubDot}</svg>`;
 }
 
 function cardHTML(card, F, big, color) {
@@ -245,7 +256,7 @@ function cardHTML(card, F, big, color) {
        style="--bg1:${P.bg1};--bg2:${P.bg2};--ink:${P.ink}">
     <div class="face front">
       <div class="top"><span class="no">No.${String(card.no).padStart(3, '0')}</span><span class="st" title="${RARE[card.rare]}">${stars(card.rare)}</span></div>
-      <div class="art-box">${F ? artSVG(card, F, 260, 260) : ''}</div>
+      <div class="art-box">${F ? shapeSVG(card, F, 260, 260) : ''}</div>
       <div class="nm ${card.name.length > 13 ? 'long' : ''}">${esc(card.name)}</div>
       <div class="meta">${esc(card.pref)}・${esc(card.agency || card.org)}</div>
       <div class="sub-line">${card.nstops} のバス停・${card.nroutes} 路線・最長 ${card.len} km</div>
@@ -254,7 +265,7 @@ function cardHTML(card, F, big, color) {
     <div class="face back">
       <div class="top"><span class="no">No.${String(card.no).padStart(3, '0')}</span><span class="st">${RARE[card.rare]}</span></div>
       <div class="nm-back">${esc(card.name)}</div>
-      <div class="shape-box">${shapeSVG(card, 280, 200, P.ink)}</div>
+      <div class="shape-box">${F ? artSVG(card, F, 180, 180) : ''}<span class="cap">1 日の便（時計の形）</span></div>
       <dl class="facts">
         <dt>運賃</dt><dd>${card.fare} 円（均一）</dd>
         <dt>バス停</dt><dd>${card.nstops} か所</dd>
@@ -262,7 +273,7 @@ function cardHTML(card, F, big, color) {
         <dt>いちばん長い線</dt><dd>${card.len} km</dd>
         <dt>便がいちばん多いバス停</dt><dd>${esc(card.hub)}</dd>
       </dl>
-      <p class="lic">形: ${card.shape ? '事業者の路線形状' : 'バス停を順につないだ線'}。データ: ${esc(card.org)}（${esc(card.license || 'ライセンス表記なし')}）／GTFSデータリポジトリ</p>
+      <p class="lic">表の形: ${card.shape ? '事業者の路線形状' : 'バス停を順につないだ線'}。◯は便がいちばん多いバス停。データ: ${esc(card.org)}（${esc(card.license || 'ライセンス表記なし')}）／GTFSデータリポジトリ</p>
     </div>
   </div>`;
 }

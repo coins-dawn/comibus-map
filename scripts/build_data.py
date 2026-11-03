@@ -79,7 +79,8 @@ def simplify(pts, tol):
         md, mk = 0, -1
         for k in range(i + 1, j):
             y, x = pts[k]
-            d = abs(dy * (x - x1) - dx * (y - y1)) / L
+            # 始点と終点が同じ（循環）ときは、始点からの距離で測る
+            d = abs(dy * (x - x1) - dx * (y - y1)) / L if L > 1e-9 else math.hypot(x - x1, y - y1)
             if d > md:
                 md, mk = d, k
         if md > tol and mk > 0:
@@ -194,7 +195,7 @@ def main():
         cy = sorted(sxy[i][0] for i in set(stop2.values()))[len(sxy) // 2]
         cx = sorted(sxy[i][1] for i in set(stop2.values()))[len(sxy) // 2]
         bad = {i for i in range(len(sxy)) if abs(sxy[i][0] - cy) > 0.5 or abs(sxy[i][1] - cx) > 0.5}
-        out_trips, used = [], set()
+        out_trips, out_tids, used = [], [], set()
         for tid, seq in st.items():
             seq.sort()
             seq = [x for x in seq if stop2[x[1]] not in bad]
@@ -208,6 +209,7 @@ def main():
                 ts += [x[2] - t0, x[3] - t0]
             tr = trips[tid]
             out_trips.append([ridx[tr['route_id']], sid_index[tr['service_id']], t0, s, ts])
+            out_tids.append(tid)
             used.update(s)
         if not out_trips:
             skipped['時刻がない'] += 1
@@ -219,35 +221,45 @@ def main():
                 shp[r['shape_id']].append((int(float(r.get('shape_pt_sequence') or 0)), float(r['shape_pt_lat']), float(r['shape_pt_lon'])))
             except (KeyError, ValueError):
                 pass
+        # 形に路線（色分け用）を付ける。shapes.txt は trips.shape_id から路線を引く
+        shp_route, shp_need = {}, {}
+        for tr, tid in zip(out_trips, out_tids):
+            sh = trips[tid].get('shape_id')
+            if sh:
+                shp_route.setdefault(sh, tr[0])
+                # その形を使う便の停留所の並びの長さ（形がこれより極端に短ければ壊れているとみなす）
+                shp_need[sh] = min(shp_need.get(sh, 1e18), plen([tuple(sxy[i]) for i in tr[3]]))
         lines, has_shape = [], False
         uy = [sxy[i][0] for i in used]; ux = [sxy[i][1] for i in used]
         box = (min(uy) - 0.03, max(uy) + 0.03, min(ux) - 0.03, max(ux) + 0.03)
-        for v in shp.values():
+        for sh, v in shp.items():
+            if shp_route and sh not in shp_route:
+                continue  # 使う便のない形
             v.sort()
             l = [(p[1], p[2]) for p in v]
-            if l and all(box[0] <= y <= box[1] and box[2] <= x <= box[3] for y, x in l):
-                lines.append(l)
-        if lines:
-            has_shape = True
-        if not lines:
-            seen = set()
-            for tr in out_trips:
-                k = tuple(tr[3])
-                if k not in seen:
-                    seen.add(k)
-                    lines.append([tuple(sxy[i]) for i in tr[3]])
-            has_shape = False
+            if len(l) >= 2 and all(box[0] <= y <= box[1] and box[2] <= x <= box[3] for y, x in l) \
+                    and plen(l) >= 0.5 * shp_need.get(sh, 0):
+                lines.append((shp_route.get(sh, 0), l))
+        has_shape = bool(lines)
+        # 形のない路線（または形が壊れている路線）は、停留所を順につないだ線で補う
+        covered = {r for r, _ in lines}
+        seen = set()
+        for tr in out_trips:
+            k = tuple(tr[3])
+            if tr[0] not in covered and k not in seen:
+                seen.add(k)
+                lines.append((tr[0], [tuple(sxy[i]) for i in tr[3]]))
         # 長さは停留所の並びで測る（shapes の外れ値に左右されない）
         longest = max(plen([tuple(sxy[i]) for i in tr[3]]) for tr in out_trips)
-        allpts = [p for l in lines for p in l]
+        allpts = [p for _, l in lines for p in l]
         span = max(max(p[0] for p in allpts) - min(p[0] for p in allpts), max(p[1] for p in allpts) - min(p[1] for p in allpts)) or 0.01
-        thumb = []
-        for l in lines:
-            s = simplify(l, span / 70)
-            if len(s) >= 2:
-                thumb.append([[round(p[0], 4), round(p[1], 4)] for p in s])
-        # 同じ線が何本もあるときは重複を落とす
-        thumb = [list(x) for x in {json.dumps(t): t for t in thumb}.values()][:16]
+        # カードの図柄用。カードの幅（約 260px）で 1px 未満の誤差に間引く
+        shape = {}
+        for r, l in lines:
+            q = simplify(l, span / 400)
+            if len(q) >= 2:
+                shape[json.dumps(q)] = [r, [[round(p[0], 5), round(p[1], 5)] for p in q]]
+        shape = list(shape.values())[:80]
         hub = collections.Counter(i for tr in out_trips for i in tr[3]).most_common(1)[0][0]
         fname = b.get('feed_name') or agname or key
         fname = re.sub(r'^【[^】]*】', '', fname).split('/')[0].strip()
@@ -257,7 +269,7 @@ def main():
         rnames = [routes[r].get('route_long_name') or routes[r].get('route_short_name') or r for r in rlist]
         dfile = {'stops': [[sname[i]] + sxy[i] for i in range(len(sname))], 'routes': rnames,
                  'pats': pats, 'start': START.isoformat(), 'days': ''.join(chr(48 + c) for c in code),
-                 'trips': out_trips}
+                 'trips': out_trips, 'shape': shape}
         js = json.dumps(dfile, ensure_ascii=False, separators=(',', ':'))
         with open(os.path.join(a.out, 'f', key + '.json'), 'w', encoding='utf-8') as fh:
             fh.write(js)
@@ -266,7 +278,7 @@ def main():
                       'fare': fare, 'nstops': len(used), 'nroutes': len({tr[0] for tr in out_trips}),
                       'len': round(longest / 1000, 1), 'shape': has_shape, 'alt': alt,
                       'kei': kei(fname), 'yoyaku': yoyaku, 'hub': sname[hub],
-                      'thumb': thumb, 'license': b.get('feed_license_id', ''), 'license_url': b.get('feed_license_url', ''),
+                      'license': b.get('feed_license_id', ''), 'license_url': b.get('feed_license_url', ''),
                       'page': b.get('feed_page_url', ''), 'from': b.get('file_from_date', ''), 'to': b.get('file_to_date', ''),
                       'kb': len(js.encode()) // 1024})
     # レア度: いちばん長い線が短いほどレア（短い順に 15%＝★★★、次の 35%＝★★、残り★）
