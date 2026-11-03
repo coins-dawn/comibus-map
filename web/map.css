@@ -4,7 +4,7 @@ body.mappage { overflow: hidden; background: #a9dcf5; }
 .mbar { position: fixed; left: 0; right: 0; top: 0; height: 52px; z-index: 4; display: flex; align-items: center; padding: 0 12px;
   background: #fff; }  /* 白・フチなし（2026-11-03 ユーザー指示） */
 .brand { display: flex; align-items: center; gap: 8px; text-decoration: none; }
-.brand img { width: 38px; height: 38px; }
+.brand img { display: block; width: 40px; height: auto; }  /* 絵の範囲に切り詰めた svg（上下の中央にそろう） */
 #map { position: fixed; inset: 52px 0 0 0; }
 .mhint { position: fixed; left: 50%; transform: translateX(-50%); top: 60px; z-index: 3; pointer-events: none; max-width: calc(100% - 24px); text-align: center; }
 .mhint[hidden] { display: none; }
@@ -58,7 +58,7 @@ body.aboutpage { margin: 0; background: #fff; color: #222; font-family: system-u
 .mbar .logo, .about-link { white-space: nowrap; }
 @media (max-width: 420px) {
   .mbar .logo { font-size: 17px; letter-spacing: 0; }
-  .brand img { width: 32px; height: 32px; }
+  .brand img { width: 34px; height: auto; }
   .about-link { font-size: 11.5px; }
 }
 
