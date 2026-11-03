@@ -111,20 +111,20 @@ SEASON_WORDS = [
     ('春', r'桜|さくら|サクラ|梅|うめ|菜の花|つつじ|ツツジ|藤|ふじ園|チューリップ|いちご|イチゴ|苺|潮干狩'),
     ('夏', r'あじさい|アジサイ|紫陽花|ひまわり|ヒマワリ|ラベンダー|蓮|はす|ハス|睡蓮|ほたる|ホタル|蛍|海水浴|ビーチ|海岸|浜|滝|プール|キャンプ|花火|川遊び'),
     ('秋', r'もみじ|紅葉|楓|モミジ|峡|渓|コスモス|栗|柿|ぶどう|ブドウ|葡萄|りんご|リンゴ|松茸|きのこ'),
-    ('冬', r'温泉|湯|スキー|雪|白鳥|スケート'),
+    ('冬', r'スキー|雪|白鳥|スケート|流氷|樹氷|氷瀑|イルミネーション'),  # 温泉は冬にしない（目的の「温泉」で選ぶ。2026-11-03）
 ]
-SEASON_CAT = {'onsen': '冬', 'beach': '夏'}
+SEASON_CAT = {'beach': '夏'}
 SEASON_MOTIF = {'sakura': '春', 'strawberry': '春', 'peach': '夏', 'hydrangea': '夏', 'sunflower': '夏', 'lavender': '夏', 'lotus': '夏',
                 'firefly': '夏', 'fireworks': '夏', 'sea': '夏', 'waterfall': '夏', 'maple': '秋', 'chestnut': '秋', 'persimmon': '秋',
-                'grape': '秋', 'apple': '秋', 'mushroom': '秋', 'snow': '冬', 'swan': '冬', 'onsenmark': '冬'}
+                'grape': '秋', 'apple': '秋', 'mushroom': '秋', 'snow': '冬', 'swan': '冬'}
 # 目的: スポットの種類をまとめ直す（駅・図書館は目的にしない）
 PURPOSE = {'onsen': 'onsen', 'castle': 'castle', 'jinja': 'jisha', 'tera': 'jisha', 'museum': 'museum', 'michi': 'michi',
            'beach': 'water', 'ferry': 'water', 'zoo': 'zoo', 'view': 'view', 'park': 'view', 'sky': 'view'}
 
 
-def spot_season(sp, art):
+def spot_season(sp, art, research=None):
     import re
-    out = set()
+    out = set(research or '')
     for se, pat in SEASON_WORDS:
         if re.search(pat, sp[1]):
             out.add(se)
@@ -196,9 +196,11 @@ def main():
     rep = sorted(set(rep))
     # スポットの季節、カードごとの目的と季節（フィルタ用）
     specs0 = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'spotart_specs.json'), encoding='utf-8'))
+    research = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'spot_research.json'), encoding='utf-8'))
     card_cat, card_sea = collections.defaultdict(set), collections.defaultdict(set)
     for si, sp in enumerate(spots):
-        se = spot_season(sp, specs0.get(str(si)))
+        rk = research.get(f"{sp[1]}|{sp[2]}|{sp[3]}") or {}
+        se = spot_season(sp, specs0.get(str(si)) or rk.get('spec'), rk.get('season'))
         sp.append(se)
         for ci in sp[4]:
             if sp[0] in PURPOSE:
@@ -219,6 +221,9 @@ def main():
         if k != '_' and v and int(k) < len(spots):
             sp = spots[int(k)]
             art[f"{sp[1]}|{sp[2]}|{sp[3]}"] = v[:3]
+    for k, v in research.items():
+        if k != '_' and v.get('spec'):
+            art[k] = v['spec'][:3]
     with open(os.path.join(a.data, 'spotart.json'), 'w', encoding='utf-8') as fh:
         json.dump(art, fh, ensure_ascii=False, separators=(',', ':'))
     print('スポットの絵', len(art))

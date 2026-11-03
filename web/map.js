@@ -146,7 +146,7 @@ async function init() {
     const el = document.createElement('div'); el.className = 'pref'; el.textContent = n;
     return new maplibregl.Marker({ element: el }).setLngLat([lon, lat]);
   });
-  const showPrefs = () => { const on = map.getZoom() < 7; prefs.forEach((m) => (on ? m.addTo(map) : m.remove())); };
+  const showPrefs = () => {};  // 都道府県名は出さない（ノイズになる。2026-11-03 ユーザー指示）
   initWaves(japan.land);
   map.on('load', () => {
     if (typeof buildRanking === 'function') buildRanking();
