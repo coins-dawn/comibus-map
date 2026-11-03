@@ -109,7 +109,7 @@ async function init() {
     container: 'map', attributionControl: false, minZoom: 2.5, maxZoom: 16.5, dragRotate: false, pitchWithRotate: false,
     maxBounds: [[100, 5], [170, 60]],  // 狭いと縦長の画面でズームが下限で止まり、日本全体が入らない
     // 初期の範囲: 北海道の北端（宗谷岬）から鹿児島の南端（本土の佐多岬）まで。沖縄まで入れると小さくなりすぎる（2026-11-03 ユーザー指示）
-    bounds: [[128.6, 30.95], [145.9, 45.6]], fitBoundsOptions: { padding: { top: 14, bottom: 30, left: 8, right: 8 } },
+    bounds: [[128.6, 30.95], [145.9, 45.6]], fitBoundsOptions: { padding: { top: 14, bottom: 30, left: innerWidth > 760 ? 320 : 8, right: 8 } },  // PC は浮いた左ペインのぶん空ける
     style: {
       version: 8,
       sources: {
@@ -137,7 +137,7 @@ async function init() {
     'スポット: © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',
     '地図: <a href="https://maps.gsi.go.jp/development/ichiran.html">地理院タイル</a>・Natural Earth',
     'イラスト: 自作', 'ロゴのバス: <a href="https://github.com/googlefonts/noto-emoji">Noto Emoji</a>（Apache 2.0）'] }), 'bottom-right');
-  map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-left');
+  map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right');  // 左下は浮いた左ペインと重なる
   map.touchZoomRotate.disableRotation();
   // 都道府県の名前（引いた状態だけ）
   const prefs = japan.labels.map(([n, lon, lat]) => {

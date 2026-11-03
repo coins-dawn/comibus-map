@@ -19,15 +19,19 @@ const getJSON = (u) => (cache[u] = cache[u] || fetch(u).then((r) => r.json()));
 // ---- 絵の窓（SVG）
 const TILE = 'https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png';
 const merc = (lat, lon) => { const r = lat * Math.PI / 180; return [(lon + 180) / 360, (1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2]; };
+// 駅の記号（Iconify mdi:train, Apache 2.0）
+const TRAIN_D = 'M12 2c-4 0-8 .5-8 4v9.5A3.5 3.5 0 0 0 7.5 19L6 20.5v.5h2.23l2-2H14l2 2h2v-.5L16.5 19a3.5 3.5 0 0 0 3.5-3.5V6c0-3.5-3.58-4-8-4M7.5 17A1.5 1.5 0 0 1 6 15.5A1.5 1.5 0 0 1 7.5 14A1.5 1.5 0 0 1 9 15.5A1.5 1.5 0 0 1 7.5 17m3.5-7H6V6h5zm2 0V6h5v4zm3.5 7a1.5 1.5 0 0 1-1.5-1.5a1.5 1.5 0 0 1 1.5-1.5a1.5 1.5 0 0 1 1.5 1.5a1.5 1.5 0 0 1-1.5 1.5';
 const LINE_COLOR = { SSR: '#8a4fd6', SR: '#e2483d', R: '#2c6fc0' };
 
-function mapSVG(card, F, spots, W = BOX_W, H = BOX_H - BOX_T) {
+function mapSVG(card, F, spots, W = BOX_W, H = BOX_H - BOX_T, acc = null) {
   const rs = new Set(card.rs);
   let lines = F.shape.filter((l) => rs.has(l[0])).map((l) => l[1]);
   const trips = F.trips.filter((t) => rs.has(t[0]));
   if (!lines.length) lines = [trips[0][3].map((i) => [F.stops[i][1], F.stops[i][2]])];
   const stops = [...new Set(trips.flatMap((t) => t[3]))].map((i) => F.stops[i]);
-  const pts = lines.flat().concat(spots.map((s) => [s[2], s[3]])).map((p) => merc(p[0], p[1]));
+  // 駅前・駅から歩ける路線は、駅と歩く道も枠に入れる
+  const walk = acc && (acc.mode === 'walk' || acc.mode === 'at') ? acc : null;
+  const pts = lines.flat().concat(spots.map((s) => [s[2], s[3]])).concat(walk ? [[walk.lat, walk.lon]] : []).map((p) => merc(p[0], p[1]));
   const x0 = Math.min(...pts.map((p) => p[0])), x1 = Math.max(...pts.map((p) => p[0]));
   const y0 = Math.min(...pts.map((p) => p[1])), y1 = Math.max(...pts.map((p) => p[1]));
   // 絵は点の上に伸びるので、上の余白を広くとる
@@ -62,16 +66,28 @@ function mapSVG(card, F, spots, W = BOX_W, H = BOX_H - BOX_T) {
     placed.push(best.box);
     const label = sp[1].length > 9 ? sp[1].slice(0, 8) + '…' : sp[1];
     art += `<g>${Math.hypot(best.ix - x, best.iy - y) > 14 ? `<path d="M${x.toFixed(1)} ${y.toFixed(1)} L${best.ix.toFixed(1)} ${(best.iy - 4).toFixed(1)}" stroke="${INK}" stroke-width="1.2" stroke-dasharray="2 2"/>` : ''}
-      <circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="#ff8a00" stroke="${INK}" stroke-width="1.3"/>
+      <circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="1.8" fill="${INK}"/>
       <svg x="${(best.ix - SZ / 2).toFixed(1)}" y="${(best.iy - SZ * .9).toFixed(1)}" width="${SZ}" height="${SZ}" viewBox="0 0 64 64" overflow="visible">${spotIcon(sp)}</svg>
       <text class="lbl" x="${best.ix.toFixed(1)}" y="${(best.iy + 9).toFixed(1)}" text-anchor="middle">${esc(label)}</text></g>`;
   }
   const busD = dOf(lines.slice().sort((a, b) => b.length - a.length)[0]);
+  // 駅（Iconify mdi:train）と、駅からバス停まで歩く道（点線）
+  let st = '';
+  if (walk) {
+    const [sx, sy] = P(walk.lat, walk.lon);
+    if (walk.path) st += `<path d="${dOf(walk.path)}" fill="none" stroke="#3d3d44" stroke-width="2.2" stroke-dasharray="1 4" stroke-linecap="round"/>`;
+    const label = `${walk.st}駅`, tw = label.length * 11 + 26;
+    const bx = Math.min(Math.max(sx - tw / 2, 2), W - tw - 2), by = Math.min(Math.max(sy - 30, 2), H - 24);
+    st += `<circle cx="${sx.toFixed(1)}" cy="${sy.toFixed(1)}" r="3.4" fill="#fff" stroke="#3d3d44" stroke-width="2"/>
+      <g transform="translate(${bx.toFixed(1)} ${by.toFixed(1)})"><rect width="${tw}" height="22" rx="0" fill="#3d3d44"/>
+      <svg x="4" y="3" width="16" height="16" viewBox="0 0 24 24"><path fill="#fff" d="${TRAIN_D}"/></svg>
+      <text x="22" y="15.5" font-size="12" font-weight="800" fill="#fff">${esc(label)}</text></g>`;
+  }
   return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice">
     <g class="bgmap">${tiles}</g>
     <path d="${d}" fill="none" stroke="#fff" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
     <path d="${d}" fill="none" stroke="${card.col != null && typeof ROUTE_COLORS !== 'undefined' ? ROUTE_COLORS[card.col] : LINE_COLOR[card.rare]}" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"/>
-    ${dots}${art}
+    ${st}${dots}${art}
     <path class="bus-path" d="${busD}" fill="none" stroke="none"/>
     <g class="bus"><svg x="-15" y="-24" width="30" height="30" viewBox="0 0 64 64" overflow="visible"><g class="bus-flip">${ICONS.bus}</g></svg></g></svg>`;
 }
@@ -107,6 +123,19 @@ function cardHTML(card) {
   </div>`;
 }
 
+// アクセス（右の欄）: 大きめの駅から、このコミバスへのつなぎ方。build_access.py が作る data/access.json
+const OPS = { '東日本旅客鉄道': 'JR', '西日本旅客鉄道': 'JR', '東海旅客鉄道': 'JR', '九州旅客鉄道': 'JR', '北海道旅客鉄道': 'JR', '四国旅客鉄道': 'JR' };
+const lineName = (l) => { const [op, ...ln] = l.split(' '); return OPS[op] ? `${OPS[op]}${ln.join(' ')}` : `${op} ${ln.join(' ')}`; };
+function accessHTML(a) {
+  if (!a) return '';
+  const st = `<b>${esc(a.st)}駅</b><small>（${esc(a.lines.slice(0, 2).map(lineName).join('・'))}${a.lines.length > 2 ? 'ほか' : ''}）</small>`;
+  const how = a.mode === 'at' ? `${st}の駅前、「${esc(a.stop)}」バス停から乗れます`
+    : a.mode === 'walk' ? `${st}から歩いて約 ${a.min} 分で「${esc(a.stop)}」バス停`
+    : a.mode === 'transfer' ? `${st}前の「${esc(a.vstop)}」から同じコミバスの「${esc(a.via)}」に乗り、「${esc(a.xstop)}」で乗り換え`
+    : `近くの駅は${st}。「${esc(a.stop)}」バス停まで約 ${(a.d / 1000).toFixed(1)}km（歩くには遠い）`;
+  return `<dt>アクセス</dt><dd>${how}</dd>`;
+}
+
 // 路線の概要（右の欄）。代表の日（2026-11-04 水曜・11-07 土曜・11-08 日曜）の便の数と、始発・終発
 const DAY0 = new Date('2026-11-01T00:00:00');
 const hm = (m) => `${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}`;
@@ -123,9 +152,9 @@ function routeStats(card, F) {
 }
 
 async function fillCard(el, card) {
-  const [, F, S] = await Promise.all([loadSpotArt(), getJSON(`data/f/${card.k}.json`), getJSON(`data/s/${card.k}.json`)]);
+  const [, F, S, A] = await Promise.all([loadSpotArt(), getJSON(`data/f/${card.k}.json`), getJSON(`data/s/${card.k}.json`), getJSON('data/access.json').catch(() => ({}))]);
   const m = el.querySelector('.map');
-  m.innerHTML = mapSVG(card, F, S[String(card.rs[0])] || []);
+  m.innerHTML = mapSVG(card, F, S[String(card.rs[0])] || [], BOX_W, BOX_H - BOX_T, A[card.id]);
   runBus(m);
 }
 
@@ -148,13 +177,14 @@ window.addEventListener('resize', layoutModal);
 
 async function openModal(card) {
   await loadSpotArt();
-  const [F, S0] = await Promise.all([getJSON(`data/f/${card.k}.json`), getJSON(`data/s/${card.k}.json`)]);
+  const [F, S0, A] = await Promise.all([getJSON(`data/f/${card.k}.json`), getJSON(`data/s/${card.k}.json`), getJSON('data/access.json').catch(() => ({}))]);
   const S = S0[String(card.rs[0])] || [], st = routeStats(card, F);
   const fare = card.fare_max && card.fare_max !== card.fare ? `${card.fare}円～${card.fare_max}円` : `${card.fare}円`;
   const days = st.wd || st.sa || st.su ? `平日 ${st.wd} 便・土曜 ${st.sa} 便・日曜 ${st.su} 便` : '代表の日（11 月 4〜8 日）の運行なし';
   $('#modal-in').innerHTML = `<div class="big"><div class="scale">${cardHTML(card)}</div></div>
     <div class="info">
       <dl class="stat">
+        ${accessHTML(A[card.id])}
         <dt>運行</dt><dd>${esc(card.org)}「${esc(card.op)}」</dd>
         <dt>運賃</dt><dd>${fare}</dd>
         <dt>長さ</dt><dd>${card.km}km</dd>

@@ -25,8 +25,6 @@ body.mappage { overflow: hidden; background: #a9dcf5; }
 .spot .nm2 { position: absolute; left: 50%; top: 100%; transform: translate(-50%, -2px); font-size: 10px; font-weight: 800; color: #4a3426; white-space: nowrap;
   text-shadow: 0 0 2px #fff, 0 0 2px #fff, 0 0 3px #fff, 0 0 3px #fff; pointer-events: none; }
 .spot.rep .nm2 { display: none; }
-.spot.rep::after { content: ""; position: absolute; left: 50%; bottom: -4px; width: 8px; height: 8px; margin-left: -4px; border-radius: 50%;
-  background: #ff8a00; border: 1.5px solid #4a3426; }
 .spot.hide { opacity: 0; pointer-events: none; }
 
 .maplibregl-ctrl-attrib { font-size: 10px; }
@@ -65,10 +63,10 @@ body.aboutpage { margin: 0; background: #fff; color: #222; font-family: system-u
 }
 
 /* 左ペイン: ランキング（PC は常に出す。狭い画面はヘッダのボタンで開く） */
-.rank { position: fixed; left: 0; top: 52px; bottom: 0; width: 300px; z-index: 3; overflow-y: auto; background: #fff;
+.rank { position: fixed; left: 12px; top: 64px; bottom: 12px; width: 290px; z-index: 3; overflow-y: auto; background: #fff; box-shadow: 0 4px 16px rgba(0, 0, 0, .22);
   padding: 10px 12px 20px; box-sizing: border-box; font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif; }
-.rank h2 { margin: 12px 2px 10px; font-size: 15px; color: #111; }
-.rank { border-top: 1px solid #e3e3e3; }  /* ヘッダとの境目（2026-11-03 ユーザー指示） */
+.rank h2 { margin: 4px 2px 10px; font-size: 15px; color: #111; }
+/* 左ペインは地図の上に浮かせる（左・下・ヘッダから離し、すき間に地図が見える。2026-11-03 ユーザー指示） */
 .rk { display: block; width: 100%; text-align: left; border: 1px solid #e3e3e3; border-radius: 10px; background: #fafafa;
   padding: 8px 10px; margin: 0 0 8px; cursor: pointer; font: inherit; color: #222; }
 .rk:hover { background: #f1f6fb; border-color: #c9dbee; }
@@ -79,7 +77,7 @@ body.aboutpage { margin: 0; background: #fff; color: #222; font-family: system-u
 .rk-v { display: block; font-size: 12.5px; font-weight: 700; color: #1a5fb4; margin-top: 2px; }
 .rank-note { font-size: 11px; color: #888; line-height: 1.6; margin: 6px 2px 0; }
 .rank-btn { display: none; margin-left: auto; font: inherit; font-size: 12px; font-weight: 700; border: 1px solid #ccc; border-radius: 999px; background: #fff; padding: 4px 10px; cursor: pointer; }
-@media (min-width: 761px) { #map { left: 300px; } }
+
 @media (max-width: 760px) {
   .rank { transform: translateX(-100%); transition: transform .25s; width: min(300px, 86vw); box-shadow: 2px 0 12px rgba(0, 0, 0, .2); }
   body.rank-open .rank { transform: none; }

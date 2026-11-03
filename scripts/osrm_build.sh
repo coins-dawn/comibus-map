@@ -14,7 +14,11 @@ for r in hokkaido tohoku kanto chubu kansai chugoku shikoku kyushu; do
 done
 osmium merge -O -o $W/roads.osm.pbf "${parts[@]}"
 rm "${parts[@]}"
-docker run --rm -v "$PWD/$W:/data" osrm/osrm-backend osrm-extract -p /opt/car.lua /data/roads.osm.pbf
-docker run --rm -v "$PWD/$W:/data" osrm/osrm-backend osrm-partition /data/roads.osrm
-docker run --rm -v "$PWD/$W:/data" osrm/osrm-backend osrm-customize /data/roads.osrm
-echo "できた: docker run -d --name comibus-osrm -p 5005:5000 -v \$PWD/$W:/data osrm/osrm-backend osrm-routed --algorithm mld /data/roads.osrm"
+# OSRM の処理は大きなファイルを mmap で書くので、Vagrant の共有フォルダ（/vagrant）では極端に遅い（r-tree で 1 時間以上止まった）。
+# 仮想マシン内のディスク（既定 ~/osrm-comibus）で行う
+D=${OSRM_DIR:-$HOME/osrm-comibus}
+mkdir -p $D && cp $W/roads.osm.pbf $D/
+docker run --rm -v "$D:/data" osrm/osrm-backend osrm-extract -p /opt/car.lua /data/roads.osm.pbf
+docker run --rm -v "$D:/data" osrm/osrm-backend osrm-partition /data/roads.osrm
+docker run --rm -v "$D:/data" osrm/osrm-backend osrm-customize /data/roads.osrm
+echo "できた: docker run -d --name comibus-osrm -p 5005:5000 -v $D:/data osrm/osrm-backend osrm-routed --algorithm mld /data/roads.osrm"

@@ -9,7 +9,7 @@ build_data.py のあと、build_cards.py の前に動かす。OSRM（scripts/osr
 - 結果は web/data/f/<key>.json の shape を書き換え、shape_est（推定した路線）を付ける。index.json の shape_est も付ける
 - 区間ごとの結果を work/osrm/cache.json にためる（2 回目からはサーバなしでも速い）
 """
-import json, math, os, urllib.request
+import collections, json, math, os, urllib.request
 from concurrent.futures import ThreadPoolExecutor
 
 OSRM = os.environ.get('OSRM', 'http://127.0.0.1:5005')
@@ -113,7 +113,12 @@ def main():
             q = simplify(l, span / 400)
             if len(q) >= 2:
                 est[json.dumps(q)] = [r, q]
-        F['shape'] = [l for l in F['shape'] if l[0] not in ns] + list(est.values())[:80]
+        # 路線ごとに、長い並びから 12 本まで（フィード全体で 80 本に絞ると、便の並びの多いフィードで路線ごと形が落ちた）
+        per = collections.defaultdict(list)
+        for r, q in est.values():
+            per[r].append(q)
+        keep = [[r, q] for r, qs in per.items() for q in sorted(qs, key=len, reverse=True)[:12]]
+        F['shape'] = [l for l in F['shape'] if l[0] not in ns] + keep
         F['shape_est'] = sorted(ns)
         x['shape_est'] = True
         json.dump(F, open(fn, 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
