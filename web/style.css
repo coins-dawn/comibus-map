@@ -147,7 +147,7 @@ a { color: inherit; }
 .modal { cursor: pointer; position: fixed; inset: 0; z-index: 10; background: rgba(5, 4, 12, .82); overflow-y: auto; }
 .modal[hidden] { display: none; }
 .modal-in { max-width: 420px; margin: 0 auto; padding: 18px 12px 30px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
-.modal .big { flex: none; width: calc(340px * var(--s, 1)); height: calc(476px * var(--s, 1)); }
+.modal .big { flex: none; width: calc(340px * var(--s, 1)); height: calc(400px * var(--s, 1)); }
 .info { width: 100%; font-size: 13px; color: #e8e4f5; line-height: 1.6; }
 .info .close { display: block; margin: 16px auto 0; }
 /* 横に余裕があるとき: カードを高さいっぱいに、スポットを右に */
@@ -192,3 +192,11 @@ footer { font-size: 11px; color: #9c96b3; line-height: 1.6; padding: 26px 14px 3
 .modal-in.side .stat { font-size: 14.5px; }
 /* カードの角は丸めない（2026-11-03 ユーザー指示） */
 .card.std, .card.std *, .card.std .holo { border-radius: 0 !important; }
+
+/* 路線を描いた四角い枠（カードの見せ方はやめた。2026-11-03） */
+.rbox { width: 340px; height: 400px; background: #fff; border: 1px solid #d0d0d0; box-shadow: 0 8px 24px rgba(0, 0, 0, .35); display: flex; flex-direction: column; }
+.rbox-t { flex: none; height: 40px; line-height: 40px; padding: 0 12px; font-size: 17px; font-weight: 800; color: #111;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border-left: 6px solid var(--pc); border-bottom: 1px solid #e3e3e3;
+  font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif; }
+.rbox-t.m { font-size: 14.5px; } .rbox-t.l { font-size: 12.5px; }
+.rbox .map { flex: 1; height: auto; border-radius: 0; }

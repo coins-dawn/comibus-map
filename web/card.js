@@ -21,7 +21,7 @@ const TILE = 'https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png';
 const merc = (lat, lon) => { const r = lat * Math.PI / 180; return [(lon + 180) / 360, (1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2]; };
 const LINE_COLOR = { SSR: '#8a4fd6', SR: '#e2483d', R: '#2c6fc0' };
 
-function mapSVG(card, F, spots, W = 300, H = 338) {
+function mapSVG(card, F, spots, W = BOX_W, H = BOX_H - BOX_T) {
   const rs = new Set(card.rs);
   let lines = F.shape.filter((l) => rs.has(l[0])).map((l) => l[1]);
   const trips = F.trips.filter((t) => rs.has(t[0]));
@@ -96,25 +96,14 @@ function tick(now) {
 }
 requestAnimationFrame(tick);
 
+// 路線を描いた四角い枠（2026-11-03: カードの見せ方をやめた）。路線名は上に 1 回だけ。数字は右の欄に出す
+const BOX_W = 340, BOX_H = 400, BOX_T = 40;  // 枠の幅・高さ・路線名の帯の高さ
 function cardHTML(card) {
-  // レア度は出さない（2026-11-03 ユーザー指示）。運賃・バス停・長さはカードの下に残す。名前の帯は地図の線と同じ色
-  const nmc = card.name.length > 16 ? 'l' : card.name.length > 12 ? 'm' : '';
+  const nmc = card.name.length > 18 ? 'l' : card.name.length > 13 ? 'm' : '';
   const col = card.col != null && typeof ROUTE_COLORS !== 'undefined' ? ROUTE_COLORS[card.col] : '#2c6fc0';
-  return `<div class="card std">
-    <div class="inner">
-      <div class="head">
-        <div class="op"><small>${esc(card.pref)}・${esc(card.org)}</small><span>${esc(card.op)}</span></div>
-      </div>
-      <div class="frame"><div class="map"></div></div>
-      <div class="plate" style="--pc:${col}"><div class="nm ${nmc}">${esc(card.name)}</div></div>
-      <div class="stats">
-        <div class="st"><small>運賃</small>${card.fare_max && card.fare_max !== card.fare
-          ? `<b class="range">${card.fare}<i>円</i>～${card.fare_max}<i>円</i></b>` : `<b>${card.fare}<i>円</i></b>`}</div>
-        <div class="st"><small>バス停</small><b>${card.nstops}</b></div>
-        <div class="st"><small>長さ</small><b>${card.km}<i>km</i></b></div>
-      </div>
-    </div>
-    <div class="holo"></div>
+  return `<div class="rbox" style="--pc:${col}">
+    <div class="rbox-t ${nmc}">${esc(card.name)}</div>
+    <div class="map"></div>
   </div>`;
 }
 
@@ -148,9 +137,9 @@ function layoutModal() {
   const box = $('#modal-in .big');
   if (!box) return;
   const W = window.innerWidth, H = window.innerHeight;
-  const kH = H * 0.8 / 476;  // 画面の高さの 8 割（いっぱいだと圧迫感がある。2026-11-03 ユーザー指示）
-  const side = W - 340 * Math.min(kH, 1) - 60 >= SIDE_MIN;
-  const k = side ? Math.min(kH, (W - 60 - SIDE_MIN) / 340) : Math.min((W - 24) / 340, kH);
+  const kH = H * 0.8 / BOX_H;  // 画面の高さの 8 割（いっぱいだと圧迫感がある。2026-11-03 ユーザー指示）
+  const side = W - BOX_W * Math.min(kH, 1) - 60 >= SIDE_MIN;
+  const k = side ? Math.min(kH, (W - 60 - SIDE_MIN) / BOX_W) : Math.min((W - 24) / BOX_W, kH);
   $('#modal-in').classList.toggle('side', side);
   box.style.setProperty('--s', k);
   box.firstElementChild.style.setProperty('--s', k);
@@ -165,7 +154,6 @@ async function openModal(card) {
   const days = st.wd || st.sa || st.su ? `平日 ${st.wd} 便・土曜 ${st.sa} 便・日曜 ${st.su} 便` : '代表の日（11 月 4〜8 日）の運行なし';
   $('#modal-in').innerHTML = `<div class="big"><div class="scale">${cardHTML(card)}</div></div>
     <div class="info">
-      <h3>${esc(card.name)}</h3>
       <dl class="stat">
         <dt>運行</dt><dd>${esc(card.org)}「${esc(card.op)}」</dd>
         <dt>運賃</dt><dd>${fare}</dd>
