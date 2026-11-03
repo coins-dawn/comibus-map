@@ -105,6 +105,40 @@ def color_routes(feats, cell=0.005, ncol=NCOL):
         f['properties']['col'] = col[i]
 
 
+# ---- フィルタ用: スポットの季節と、目的の分類
+# 季節はスポットの名前・種類・絵の目印から付ける目安（見頃を一つずつ確かめたものではない）
+SEASON_WORDS = [
+    ('春', r'桜|さくら|サクラ|梅|うめ|菜の花|つつじ|ツツジ|藤|ふじ園|チューリップ|いちご|イチゴ|苺|潮干狩'),
+    ('夏', r'あじさい|アジサイ|紫陽花|ひまわり|ヒマワリ|ラベンダー|蓮|はす|ハス|睡蓮|ほたる|ホタル|蛍|海水浴|ビーチ|海岸|浜|滝|プール|キャンプ|花火|川遊び'),
+    ('秋', r'もみじ|紅葉|楓|モミジ|峡|渓|コスモス|栗|柿|ぶどう|ブドウ|葡萄|りんご|リンゴ|松茸|きのこ'),
+    ('冬', r'温泉|湯|スキー|雪|白鳥|スケート'),
+]
+SEASON_CAT = {'onsen': '冬', 'beach': '夏'}
+SEASON_MOTIF = {'sakura': '春', 'strawberry': '春', 'peach': '夏', 'hydrangea': '夏', 'sunflower': '夏', 'lavender': '夏', 'lotus': '夏',
+                'firefly': '夏', 'fireworks': '夏', 'sea': '夏', 'waterfall': '夏', 'maple': '秋', 'chestnut': '秋', 'persimmon': '秋',
+                'grape': '秋', 'apple': '秋', 'mushroom': '秋', 'snow': '冬', 'swan': '冬', 'onsenmark': '冬'}
+# 目的: スポットの種類をまとめ直す（駅・図書館は目的にしない）
+PURPOSE = {'onsen': 'onsen', 'castle': 'castle', 'jinja': 'jisha', 'tera': 'jisha', 'museum': 'museum', 'michi': 'michi',
+           'beach': 'water', 'ferry': 'water', 'zoo': 'zoo', 'view': 'view', 'park': 'view', 'sky': 'view'}
+
+
+def spot_season(sp, art):
+    import re
+    out = set()
+    for se, pat in SEASON_WORDS:
+        if re.search(pat, sp[1]):
+            out.add(se)
+    if sp[0] in SEASON_CAT:
+        out.add(SEASON_CAT[sp[0]])
+    if sp[0] == 'view' and re.search(r'峡|渓', sp[1]):
+        out.add('秋')
+    for m in (art or [None, None, []])[2]:
+        k = m[0] if isinstance(m, list) else m
+        if k in SEASON_MOTIF:
+            out.add(SEASON_MOTIF[k])
+    return ''.join(se for se in '春夏秋冬' if se in out)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--data', default='web/data')
@@ -160,6 +194,23 @@ def main():
         used[spots[si][0]] += 1
         rep.append(si)
     rep = sorted(set(rep))
+    # スポットの季節、カードごとの目的と季節（フィルタ用）
+    specs0 = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'spotart_specs.json'), encoding='utf-8'))
+    card_cat, card_sea = collections.defaultdict(set), collections.defaultdict(set)
+    for si, sp in enumerate(spots):
+        se = spot_season(sp, specs0.get(str(si)))
+        sp.append(se)
+        for ci in sp[4]:
+            if sp[0] in PURPOSE:
+                card_cat[ci].add(PURPOSE[sp[0]])
+            card_sea[ci].update(se)
+    for f in route_feats:
+        ci = f['properties']['c']
+        f['properties']['cat'] = ','.join(sorted(card_cat[ci]))
+        f['properties']['sea'] = ''.join(se for se in '春夏秋冬' if se in card_sea[ci])
+    print('季節（路線の数）', {se: sum(se in f['properties']['sea'] for f in route_feats) for se in '春夏秋冬'},
+          '／目的', dict(collections.Counter(c for f in route_feats for c in f['properties']['cat'].split(',') if c)))
+    print('季節（スポットの数）', {se: sum(se in sp[5] for sp in spots) for se in '春夏秋冬'})
     color_routes(route_feats)
     # スポットごとの絵（自治体ごとの代表のスポットのうち、名前や中身から目印が決まるもの）
     specs = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'spotart_specs.json'), encoding='utf-8'))

@@ -26,7 +26,9 @@ function spotEl(i) {
 function refreshSpots() {
   const z = map.getZoom(), all = z >= Z_ALL;
   const W = map.getContainer().clientWidth, H = map.getContainer().clientHeight;
-  const cand = all ? SPOTS.map((_, i) => i) : [...REP];
+  // 絞り込み中は、条件に合うスポットだけ（引いた状態でも代表に限らない）
+  const fon = typeof filterOn === 'function' && filterOn();
+  const cand = fon ? SPOTS.map((_, i) => i).filter((i) => spotMatch(SPOTS[i])) : all ? SPOTS.map((_, i) => i) : [...REP];
   cand.sort((a, b) => (REP.has(b) - REP.has(a)) || CAT_ORDER.indexOf(SPOTS[a][0]) - CAT_ORDER.indexOf(SPOTS[b][0]));
   const gap = all ? 50 : 46, shown = new Set(), placed = [];
   for (const i of cand) {
@@ -148,6 +150,7 @@ async function init() {
   initWaves(japan.land);
   map.on('load', () => {
     if (typeof buildRanking === 'function') buildRanking();
+    if (typeof buildFilter === 'function') buildFilter();
     const at = params.get('at');  // ?at=ズーム/緯度/経度（キャプチャ用）
     if (at) { const [z, la, lo] = at.split('/').map(Number); map.jumpTo({ zoom: z, center: [lo, la] }); }
     showPrefs(); refreshWaves(); refreshSpots();
