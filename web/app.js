@@ -246,7 +246,7 @@ function cardHTML(card, F, big, color) {
     <div class="face front">
       <div class="top"><span class="no">No.${String(card.no).padStart(3, '0')}</span><span class="st" title="${RARE[card.rare]}">${stars(card.rare)}</span></div>
       <div class="art-box">${F ? artSVG(card, F, 260, 260) : ''}</div>
-      <div class="nm">${esc(card.name)}</div>
+      <div class="nm ${card.name.length > 13 ? 'long' : ''}">${esc(card.name)}</div>
       <div class="meta">${esc(card.pref)}・${esc(card.agency || card.org)}</div>
       <div class="sub-line">${card.nstops} のバス停・${card.nroutes} 路線・最長 ${card.len} km</div>
       <div class="badges"><span class="fare">${card.fare} 円</span><span class="kei">${esc(card.kei)}</span></div>

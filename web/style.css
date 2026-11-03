@@ -56,6 +56,7 @@ nav { display: flex; gap: 6px; }
 .art .hr { font-size: 8px; fill: currentColor; opacity: .45; }
 .sub-line { font-size: 11.5px; opacity: .8; margin-top: 2px; }
 .nm { font-size: 18px; font-weight: 800; line-height: 1.25; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.nm.long { font-size: 14.5px; -webkit-line-clamp: 2; }
 .meta { font-size: 12px; opacity: .8; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .badges { margin-top: auto; display: flex; gap: 6px; }
 .badges span { font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 999px; border: 1.5px solid currentColor; }
