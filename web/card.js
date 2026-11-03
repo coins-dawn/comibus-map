@@ -1,5 +1,5 @@
 'use strict';
-// カード 1 枚を描く処理（コミバスマップとガチャで共通）。icons.js のあとに読む。
+// カード 1 枚を描く処理（全国コミバスまっぷとガチャで共通）。icons.js のあとに読む。
 const $ = (s) => document.querySelector(s);
 const params = new URLSearchParams(location.search);
 const STARS = { SSR: '★★★★★', SR: '★★★★', R: '★★★' };
@@ -63,14 +63,14 @@ function mapSVG(card, F, spots, W = 300, H = 332) {
     const label = sp[1].length > 9 ? sp[1].slice(0, 8) + '…' : sp[1];
     art += `<g>${Math.hypot(best.ix - x, best.iy - y) > 14 ? `<path d="M${x.toFixed(1)} ${y.toFixed(1)} L${best.ix.toFixed(1)} ${(best.iy - 4).toFixed(1)}" stroke="${INK}" stroke-width="1.2" stroke-dasharray="2 2"/>` : ''}
       <circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="#ff8a00" stroke="${INK}" stroke-width="1.3"/>
-      <svg x="${(best.ix - SZ / 2).toFixed(1)}" y="${(best.iy - SZ * .9).toFixed(1)}" width="${SZ}" height="${SZ}" viewBox="0 0 64 64" overflow="visible">${ICONS[sp[0]]}</svg>
+      <svg x="${(best.ix - SZ / 2).toFixed(1)}" y="${(best.iy - SZ * .9).toFixed(1)}" width="${SZ}" height="${SZ}" viewBox="0 0 64 64" overflow="visible">${spotIcon(sp)}</svg>
       <text class="lbl" x="${best.ix.toFixed(1)}" y="${(best.iy + 9).toFixed(1)}" text-anchor="middle">${esc(label)}</text></g>`;
   }
   const busD = dOf(lines.slice().sort((a, b) => b.length - a.length)[0]);
   return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice">
     <g class="bgmap">${tiles}</g>
     <path d="${d}" fill="none" stroke="#fff" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
-    <path d="${d}" fill="none" stroke="${LINE_COLOR[card.rare]}" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="${d}" fill="none" stroke="${card.col != null && typeof ROUTE_COLORS !== 'undefined' ? ROUTE_COLORS[card.col] : LINE_COLOR[card.rare]}" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"/>
     ${dots}${art}
     <path class="bus-path" d="${busD}" fill="none" stroke="none"/>
     <g class="bus"><svg x="-15" y="-24" width="30" height="30" viewBox="0 0 64 64" overflow="visible"><g class="bus-flip">${ICONS.bus}</g></svg></g></svg>`;
@@ -105,10 +105,11 @@ function cardHTML(card) {
         <div class="op"><small>No.${String(card.no).padStart(4, '0')}・${esc(card.pref)}</small><span>${esc(card.op)}</span></div>
         <div class="stars">${STARS[card.rare]}</div>
       </div>
-      <div class="frame">${card.loop ? '<div class="type">ぐるっと循環</div>' : ''}<div class="map"></div></div>
+      <div class="frame"><div class="map"></div></div>
       <div class="plate"><div class="nm ${nmc}">${esc(card.name)}</div><div class="sub">${esc(card.org)}・${card.nstops} のバス停をむすぶ</div></div>
       <div class="stats">
-        <div class="st"><small>運賃</small><b>${card.fare}<i>円</i></b></div>
+        <div class="st"><small>運賃</small>${card.fare_max && card.fare_max !== card.fare
+          ? `<b class="range">${card.fare}<i>円</i>～${card.fare_max}<i>円</i></b>` : `<b>${card.fare}<i>円</i></b>`}</div>
         <div class="st"><small>バス停</small><b>${card.nstops}</b></div>
         <div class="st"><small>長さ</small><b>${card.km}<i>km</i></b></div>
       </div>
@@ -120,7 +121,7 @@ function cardHTML(card) {
 }
 
 async function fillCard(el, card) {
-  const [F, S] = await Promise.all([getJSON(`data/f/${card.k}.json`), getJSON(`data/s/${card.k}.json`)]);
+  const [, F, S] = await Promise.all([loadSpotArt(), getJSON(`data/f/${card.k}.json`), getJSON(`data/s/${card.k}.json`)]);
   const m = el.querySelector('.map');
   m.innerHTML = mapSVG(card, F, S[String(card.rs[0])] || []);
   runBus(m);
@@ -144,20 +145,20 @@ function layoutModal() {
 window.addEventListener('resize', layoutModal);
 
 async function openModal(card) {
+  await loadSpotArt();
   const S = (await getJSON(`data/s/${card.k}.json`))[String(card.rs[0])] || [];
   $('#modal-in').innerHTML = `<div class="big"><div class="scale">${cardHTML(card)}</div></div>
     <div class="info">
-      <h3>沿線のスポット</h3>
-      ${S.length ? `<ul>${S.map((s) => `<li><svg viewBox="0 0 64 64">${ICONS[s[0]]}</svg><span>${esc(s[1])} <small>${CAT_LABEL[s[0]]}</small></span></li>`).join('')}</ul>` : '<p>バス停から 200m 以内に、載せられるスポットがありませんでした。</p>'}
+      ${S.length ? `<h3>沿線のスポット</h3><ul>${S.map((s) => `<li><svg viewBox="0 0 64 64">${spotIcon(s)}</svg><span>${esc(s[1])} <small>${CAT_LABEL[s[0]]}</small></span></li>`).join('')}</ul>` : ''}
       <p class="lic">${esc(card.org)}「${esc(card.op)}」の GTFS（${esc(card.from)}〜${esc(card.to)}、${card.license_url ? `<a href="${esc(card.license_url)}">${esc(card.license)}</a>` : esc(card.license || 'ライセンス表記なし')}）${card.page ? `／<a href="${esc(card.page)}">配布ページ</a>` : ''}。
-        レア度は路線の長さで決めています（短いほどレア）。</p>
-      <button class="close" id="close">とじる</button>
-    </div>
-    <button class="x" id="x" aria-label="とじる">×</button>`;
+        ${card.est ? '経路の形は公開されていないため、バス停の間を OpenStreetMap の道路で経路探索して描いています（推定）。' : ''}レア度は路線の長さで決めています（短いほどレア）。</p>
+    </div>`;
   layoutModal();
   $('#modal').hidden = false;
   fillCard($('#modal-in'), card);
-  $('#close').onclick = $('#x').onclick = () => { $('#modal').hidden = true; $('#modal-in').innerHTML = ''; };
 }
-$('#modal').onclick = (e) => { if (e.target.id === 'modal') $('#close').click(); };
+// どこを押しても閉じる（「とじる」「×」は置かない。2026-11-03 ユーザー指示）。出典などのリンクだけはそのまま開く
+const closeModal = () => { $('#modal').hidden = true; $('#modal-in').innerHTML = ''; };
+$('#modal').onclick = (e) => { if (!e.target.closest('a')) closeModal(); };
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('#modal').hidden) closeModal(); });
 

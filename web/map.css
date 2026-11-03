@@ -1,9 +1,15 @@
 /* コミバスマップ（地図の画面） */
 body.mappage { overflow: hidden; background: #a9dcf5; }
-#map { position: fixed; inset: 0; }
-.mhead { position: fixed; left: 0; right: 0; top: 0; z-index: 3; pointer-events: none; text-align: center; padding: 8px 12px 0; }
-.logo.small { margin: 2px 0 0; font-size: 24px; text-shadow: 0 2px 0 #a8741a, 0 0 1px #4a3426, 0 0 10px rgba(255, 255, 255, .9); }
-.logo.small span { text-shadow: 0 2px 0 #a81f4f, 0 0 10px rgba(255, 255, 255, .9); }
+/* ヘッダ: アイコンと名前。押すとはじめの画面にもどる（読み込み直す） */
+.mbar { position: fixed; left: 0; right: 0; top: 0; height: 52px; z-index: 4; display: flex; align-items: center; padding: 0 12px;
+  background: #fff; }  /* 白・フチなし（2026-11-03 ユーザー指示） */
+.brand { display: flex; align-items: center; gap: 8px; text-decoration: none; }
+.brand img { width: 38px; height: 38px; }
+#map { position: fixed; inset: 52px 0 0 0; }
+.mhint { position: fixed; left: 50%; transform: translateX(-50%); top: 60px; z-index: 3; pointer-events: none; max-width: calc(100% - 24px); text-align: center; }
+.mhint[hidden] { display: none; }
+.mbar .logo { display: block; margin: 0; font-size: 20px; font-weight: 800; letter-spacing: .04em; color: #111; text-shadow: none; }
+.mbar .logo span { color: inherit; text-shadow: none; }
 .mhint { display: inline-block; margin: 4px 0 0; padding: 3px 12px; font-size: 11.5px; font-weight: 700; color: #4a3426;
   background: rgba(255, 253, 246, .92); border: 1.5px solid #4a3426; border-radius: 999px; }
 
@@ -23,11 +29,6 @@ body.mappage { overflow: hidden; background: #a9dcf5; }
   background: #ff8a00; border: 1.5px solid #4a3426; }
 .spot.hide { opacity: 0; pointer-events: none; }
 
-/* 走るバス */
-.mbus { width: 34px; height: 34px; pointer-events: none; }
-.mbus svg { width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 2px 2px rgba(0, 0, 0, .25)); }
-.mbus.flip svg { transform: scaleX(-1); }
-
 .maplibregl-ctrl-attrib { font-size: 10px; }
 .maplibregl-ctrl-group { border-radius: 10px !important; border: 1.5px solid #4a3426; }
 
@@ -39,3 +40,26 @@ body.mappage { overflow: hidden; background: #a9dcf5; }
   50% { transform: translateX(3px) scaleY(1.1); opacity: 1; }
 }
 @media (prefers-reduced-motion: reduce) { .seawave svg { animation: none; } }
+
+/* ヘッダの右の「このサービスについて」 */
+.about-link { margin-left: auto; font-size: 13px; font-weight: 700; color: #111; text-decoration: none; padding: 6px 4px; }
+.about-link:hover { text-decoration: underline; }
+
+/* このサービスについて */
+body.aboutpage { margin: 0; background: #fff; color: #222; font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif; }
+.about { max-width: 760px; margin: 0 auto; padding: 72px 18px 40px; line-height: 1.8; font-size: 15px; }
+.about h1 { font-size: 22px; margin: 8px 0 12px; }
+.about h2 { font-size: 17px; margin: 28px 0 8px; padding-bottom: 4px; border-bottom: 1px solid #ddd; }
+.about ul { padding-left: 1.2em; margin: 0; }
+.about li { margin: 4px 0; }
+.about a { color: #1a5fb4; }
+.about .small { font-size: 13px; color: #666; }
+.about .feeds { list-style: none; padding: 0; font-size: 13.5px; line-height: 1.6; }
+.about .feeds li { padding: 6px 0; border-bottom: 1px solid #eee; }
+.about .feeds small { color: #555; }
+.mbar .logo, .about-link { white-space: nowrap; }
+@media (max-width: 420px) {
+  .mbar .logo { font-size: 17px; letter-spacing: 0; }
+  .brand img { width: 32px; height: 32px; }
+  .about-link { font-size: 11.5px; }
+}

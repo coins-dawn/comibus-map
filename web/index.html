@@ -3,16 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>コミバスマップ</title>
+<title>全国コミバスまっぷ</title>
 <link href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="map.css">
+<link rel="stylesheet" href="style.css?v=15">
+<link rel="stylesheet" href="map.css?v=15">
 </head>
 <body class="mappage">
 <div id="map"></div>
-<header class="mhead">
-  <h1 class="logo small"><span>コミバス</span>マップ</h1>
-  <p class="mhint" id="mhint">全国のコミュニティバス。地図を広げると、路線と走るバスが見えます</p>
+<header class="mbar">
+  <a class="brand" href="./" title="はじめの画面にもどる"><img src="img/bus.svg" alt=""><span class="logo">全国コミバスまっぷ</span></a>
+  <a class="about-link" href="about.html">このサービスについて</a>
 </header>
 
 <div id="modal" class="modal" hidden>
@@ -21,7 +21,8 @@
 
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script src="icons.js"></script>
-<script src="card.js"></script>
-<script src="map.js"></script>
+<script src="card.js?v=15"></script>
+<script src="spotart.js?v=15"></script>
+<script src="map.js?v=15"></script>
 </body>
 </html>

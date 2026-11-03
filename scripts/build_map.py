@@ -161,6 +161,16 @@ def main():
         rep.append(si)
     rep = sorted(set(rep))
     color_routes(route_feats)
+    # スポットごとの絵（自治体ごとの代表のスポットのうち、名前や中身から目印が決まるもの）
+    specs = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'spotart_specs.json'), encoding='utf-8'))
+    art = {}
+    for k, v in specs.items():
+        if k != '_' and v and int(k) < len(spots):
+            sp = spots[int(k)]
+            art[f"{sp[1]}|{sp[2]}|{sp[3]}"] = v[:3]
+    with open(os.path.join(a.data, 'spotart.json'), 'w', encoding='utf-8') as fh:
+        json.dump(art, fh, ensure_ascii=False, separators=(',', ':'))
+    print('スポットの絵', len(art))
     with open(os.path.join(a.data, 'routes.json'), 'w', encoding='utf-8') as fh:
         json.dump({'type': 'FeatureCollection', 'features': route_feats}, fh, separators=(',', ':'))
     with open(os.path.join(a.data, 'spots.json'), 'w', encoding='utf-8') as fh:
@@ -200,19 +210,10 @@ def main():
                       'geometry': {'type': 'MultiPolygon', 'coordinates': out}})
         ring = big[1]
         labels.append([p.get('name_ja') or p['name'], round(sum(q[0] for q in ring) / len(ring), 3), round(sum(q[1] for q in ring) / len(ring), 3)])
-    # 海の波（初期画面のアニメーション用）: 格子の点のうち、陸（都道府県の点）から 0.7 度以上離れた点。行ごとに半分ずらす
-    vs = [q for f in feats for poly in f['geometry']['coordinates'] for q in poly[0]]
-    waves = []
-    for row, y in enumerate(range(250, 470, 15)):
-        for x in range(1200 + (row % 2) * 7, 1520, 14):
-            # 行儀よく並びすぎないよう、少しずらす（決まった値なので毎回同じ）
-            lon, lat = x / 10 + ((x * 7 + y * 3) % 9 - 4) * .08, y / 10 + ((x * 5 + y) % 7 - 3) * .1
-            if all(abs(q[0] - lon) > .9 or abs(q[1] - lat) > .7 for q in vs):
-                waves.append([round(lon, 2), round(lat, 2)])
     with open(os.path.join(a.data, 'japan.json'), 'w', encoding='utf-8') as fh:
-        json.dump({'land': {'type': 'FeatureCollection', 'features': feats}, 'labels': labels, 'waves': waves}, fh, ensure_ascii=False, separators=(',', ':'))
+        json.dump({'land': {'type': 'FeatureCollection', 'features': feats}, 'labels': labels}, fh, ensure_ascii=False, separators=(',', ':'))
     print('路線の線', len(route_feats), '／スポット', len(spots), '代表', len(rep), dict(collections.Counter(spots[i][0] for i in rep)))
-    print('日本地図: 都道府県', len(feats), '波', len(waves), '落とした小島', dropped, '残した小島（バス停あり）', kept_small)
+    print('日本地図: 都道府県', len(feats), '落とした小島', dropped, '残した小島（バス停あり）', kept_small)
     for fn in ('routes.json', 'spots.json', 'japan.json'):
         print(fn, os.path.getsize(os.path.join(a.data, fn)) // 1024, 'KB')
 

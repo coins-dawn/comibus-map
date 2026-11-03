@@ -25,8 +25,8 @@ async def main():
             await pg.goto(URL + q, wait_until="networkidle")
             await pg.wait_for_timeout(4000)
             await pg.screenshot(path=f"{OUT}/{name}.png")
-            n = await pg.evaluate("() => [document.querySelectorAll('.spot').length, document.querySelectorAll('.mbus').length]")
-            print(name, 'スポット', n[0], 'バス', n[1])
+            n = await pg.evaluate("() => document.querySelectorAll('.spot').length")
+            print(name, 'スポット', n)
             if name == "43-menuma":
                 await pg.click(".spot")
                 await pg.wait_for_timeout(3500)
@@ -47,6 +47,22 @@ async def main():
         await pg.click(".spot")
         await pg.wait_for_timeout(3500)
         await pg.screenshot(path=f"{OUT}/48-pc-card.png")
+        # 運賃に幅のあるカード（スマホ・PC）
+        for cx, nm in ((ctx, "51-sp-range"), (pc, "52-pc-range")):
+            pg = await cx.new_page()
+            pg.on("pageerror", lambda e: errs.append(str(e)))
+            await pg.goto(URL, wait_until="networkidle")
+            await pg.wait_for_timeout(2500)
+            await pg.evaluate("openModal(CARDS.filter((c) => c.fare_max > c.fare && c.nspots >= 5)[3])")
+            await pg.wait_for_timeout(3500)
+            await pg.screenshot(path=f"{OUT}/{nm}.png")
+            await pg.close()
+        # 広げても海の波が出る
+        pg = await pc.new_page()
+        await pg.goto(URL + "?at=11/35.3/139.65", wait_until="networkidle")
+        await pg.wait_for_timeout(8000)
+        await pg.screenshot(path=f"{OUT}/53-pc-zoom-waves.png")
+        print("波（z11）", await pg.evaluate("document.querySelectorAll('.seawave').length"))
         print("console errors:", errs[:6] or "なし")
         await b.close()
 

@@ -186,9 +186,9 @@ def main():
             cid = f"{fc['k']}~{rs[0]}"
             spots_out[str(rs[0])] = [[it[0], it[1], round(it[2], 5), round(it[3], 5)] for it in pick]
             cards.append({'id': cid, 'k': fc['k'], 'rs': rs, 'name': name, 'op': fc['name'], 'org': fc['org'], 'pref': fc['pref'],
-                          'fare': fc['fare'], 'nstops': len(used), 'km': round(length / 1000, 1), 'loop': loop,
+                          'fare': min(F['rfare'][r][0] for r in rs), 'fare_max': max(F['rfare'][r][1] for r in rs), 'nstops': len(used), 'km': round(length / 1000, 1), 'loop': loop,
                           'kei': fc['kei'], 'nspots': len(pick), 'license': fc['license'], 'license_url': fc['license_url'],
-                          'from': fc['from'], 'to': fc['to'], 'page': fc['page'], 'alt': fc['alt']})
+                          'est': bool(set(rs) & set(F.get('shape_est', []))), 'from': fc['from'], 'to': fc['to'], 'page': fc['page'], 'alt': fc['alt']})
         with open(os.path.join(a.data, 's', fc['k'] + '.json'), 'w', encoding='utf-8') as fh:
             json.dump(spots_out, fh, ensure_ascii=False, separators=(',', ':'))
     cards.sort(key=lambda c: c['km'])
@@ -201,7 +201,7 @@ def main():
         c['no'] = i
     with open(os.path.join(a.data, 'cards.json'), 'w', encoding='utf-8') as fh:
         json.dump({'cards': cards}, fh, ensure_ascii=False, separators=(',', ':'))
-    print('カード', n, '枚', collections.Counter(c['rare'] for c in cards), '運賃', collections.Counter(c['fare'] for c in cards).most_common(6))
+    print('カード', n, '枚', collections.Counter(c['rare'] for c in cards), '運賃', collections.Counter((c['fare'], c['fare_max']) for c in cards).most_common(8), '幅あり', sum(c['fare'] != c['fare_max'] for c in cards))
     print('スポットの数ごとのカード', sorted(collections.Counter(c['nspots'] for c in cards).items()))
     print('循環', sum(c['loop'] for c in cards))
 

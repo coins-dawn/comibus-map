@@ -1,8 +1,8 @@
-"""自治体のコミュニティバス（均一運賃）の GTFS を、画面で使う JSON にして web/data/ に書く。
+"""自治体のコミュニティバスの GTFS を、画面で使う JSON にして web/data/ に書く。
 
 - 入力: gtfs-data.jp の全フィード（../data-exploration/data/gtfsjp_all/zips と files.json）
 - 対象: 事業者名・組織名が自治体（市・町・村・区・役所・役場・協議会・コミュニティバス）で、
-  運賃（fare_attributes）があり、すべての運賃が同じ額（均一運賃）で、0 円でないもの
+  運賃（fare_attributes）に 0 円でない額があるもの（均一運賃でなくてもよい。2026-11-03 から）
 - 出力:
   - web/data/index.json … フィードごとの名前・運賃・都道府県・停留所数・長さ・レア度・系統・形（間引いたもの）・出典
   - web/data/f/<key>.json … 停留所・便（停留所の並びと時刻）・日ごとの運行パターン
@@ -146,14 +146,20 @@ def main():
         if not (MUNI.search(agname) or MUNI.search(org)):
             skipped['自治体でない'] += 1
             continue
-        fares = {int(float(r['price'])) for r in F.rows('fare_attributes.txt') if re.fullmatch(r'\d+(\.\d+)?', r.get('price', ''))}
-        if len(fares) != 1:
-            skipped['運賃がない' if not fares else '均一運賃でない'] += 1
+        # 運賃: 均一運賃のほか、区間で変わるもの（2026-11-03 から入れる）も対象。0 円だけ・運賃なしは外す。
+        # 0 円の運賃は幅に入れない（無料区間か欠けかを確かめていないため）
+        fare_of = {r['fare_id']: int(float(r['price'])) for r in F.rows('fare_attributes.txt') if re.fullmatch(r'\d+(\.\d+)?', r.get('price', ''))}
+        fares = {v for v in fare_of.values() if v > 0}
+        if not fares:
+            skipped['0 円（未確認）' if fare_of else '運賃がない'] += 1
             continue
-        fare = fares.pop()
-        if fare <= 0:
-            skipped['0 円（未確認）'] += 1
-            continue
+        fare, fare_max = min(fares), max(fares)
+        # 路線ごとの運賃の幅（fare_rules の route_id）。route_id の無い規則しかなければ、フィード全体の幅を使う
+        rfare = collections.defaultdict(set)
+        for r in F.rows('fare_rules.txt'):
+            v = fare_of.get(r.get('fare_id', ''))
+            if v and r.get('route_id'):
+                rfare[r['route_id']].add(v)
         routes = {r['route_id']: r for r in F.rows('routes.txt') if r.get('route_type', '3') == '3'}
         if not routes:
             skipped['バスの路線がない'] += 1
@@ -268,14 +274,17 @@ def main():
         yoyaku = bool(re.search(r'デマンド|予約|乗合タクシー|おでかけ交通|タクシー', fname + agname + ' '.join(r.get('route_long_name', '') for r in routes.values()))) or npick[True] > npick[False]
         rnames = [routes[r].get('route_long_name') or routes[r].get('route_short_name') or r for r in rlist]
         dfile = {'stops': [[sname[i]] + sxy[i] for i in range(len(sname))], 'routes': rnames,
+                 'rfare': [[min(rfare[r]), max(rfare[r])] if rfare.get(r) else [fare, fare_max] for r in rlist],
                  'pats': pats, 'start': START.isoformat(), 'days': ''.join(chr(48 + c) for c in code),
-                 'trips': out_trips, 'shape': shape}
+                 'trips': out_trips, 'shape': shape,
+                 # shapes.txt に形のない路線（停留所を直線でつないだ線になっている）。route_shapes.py が OSM の道路で形を作る
+                 'noshape': sorted({tr[0] for tr in out_trips} - covered)}
         js = json.dumps(dfile, ensure_ascii=False, separators=(',', ':'))
         with open(os.path.join(a.out, 'f', key + '.json'), 'w', encoding='utf-8') as fh:
             fh.write(js)
         index.append({'k': key, 'name': fname, 'org': org or agname, 'agency': agname,
                       'pref': PREF[b['feed_pref_id'] - 1] if b.get('feed_pref_id') else '',
-                      'fare': fare, 'nstops': len(used), 'nroutes': len({tr[0] for tr in out_trips}),
+                      'fare': fare, 'fare_max': fare_max, 'nstops': len(used), 'nroutes': len({tr[0] for tr in out_trips}),
                       'len': round(longest / 1000, 1), 'shape': has_shape, 'alt': alt,
                       'kei': kei(fname), 'yoyaku': yoyaku, 'hub': sname[hub],
                       'license': b.get('feed_license_id', ''), 'license_url': b.get('feed_license_url', ''),
@@ -292,7 +301,8 @@ def main():
     with open(os.path.join(a.out, 'index.json'), 'w', encoding='utf-8') as fh:
         json.dump({'built': dt.date.today().isoformat(), 'cards': index}, fh, ensure_ascii=False, separators=(',', ':'))
     print('カード', n, '枚 / 除外', dict(skipped))
-    print('運賃', collections.Counter(x['fare'] for x in index).most_common())
+    print('運賃', collections.Counter((x['fare'], x['fare_max']) for x in index).most_common(12))
+    print('均一', sum(x['fare'] == x['fare_max'] for x in index), '幅あり', sum(x['fare'] != x['fare_max'] for x in index))
     print('系統', collections.Counter(x['kei'] for x in index).most_common())
     print('予約が要る', sum(x['yoyaku'] for x in index))
     print('レア', collections.Counter(x['rare'] for x in index), '形あり', sum(x['shape'] for x in index), '期間外', sum(x['alt'] for x in index))
