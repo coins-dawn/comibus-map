@@ -1,0 +1,41 @@
+/* コミバスマップ（地図の画面） */
+body.mappage { overflow: hidden; background: #a9dcf5; }
+#map { position: fixed; inset: 0; }
+.mhead { position: fixed; left: 0; right: 0; top: 0; z-index: 3; pointer-events: none; text-align: center; padding: 8px 12px 0; }
+.logo.small { margin: 2px 0 0; font-size: 24px; text-shadow: 0 2px 0 #a8741a, 0 0 1px #4a3426, 0 0 10px rgba(255, 255, 255, .9); }
+.logo.small span { text-shadow: 0 2px 0 #a81f4f, 0 0 10px rgba(255, 255, 255, .9); }
+.mhint { display: inline-block; margin: 4px 0 0; padding: 3px 12px; font-size: 11.5px; font-weight: 700; color: #4a3426;
+  background: rgba(255, 253, 246, .92); border: 1.5px solid #4a3426; border-radius: 999px; }
+
+/* 都道府県の名前 */
+.pref { font-size: 11px; font-weight: 900; color: #4a3426; letter-spacing: .1em; pointer-events: none; white-space: nowrap;
+  text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 3px #fff; opacity: .75; }
+
+/* スポットのイラスト */
+/* position は付けない（MapLibre のマーカーの position:absolute を上書きすると、2 つ目以降が下にずれる） */
+.spot { width: 46px; height: 46px; cursor: pointer; transition: opacity .25s; }
+.spot svg { width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 1px 0 rgba(255, 255, 255, .9)) drop-shadow(0 2px 2px rgba(0, 0, 0, .25)); }
+.spot.rep svg { width: 54px; height: 54px; margin: -8px 0 0 -4px; }
+.spot .nm2 { position: absolute; left: 50%; top: 100%; transform: translate(-50%, -2px); font-size: 10px; font-weight: 800; color: #4a3426; white-space: nowrap;
+  text-shadow: 0 0 2px #fff, 0 0 2px #fff, 0 0 3px #fff, 0 0 3px #fff; pointer-events: none; }
+.spot.rep .nm2 { display: none; }
+.spot.rep::after { content: ""; position: absolute; left: 50%; bottom: -4px; width: 8px; height: 8px; margin-left: -4px; border-radius: 50%;
+  background: #ff8a00; border: 1.5px solid #4a3426; }
+.spot.hide { opacity: 0; pointer-events: none; }
+
+/* 走るバス */
+.mbus { width: 34px; height: 34px; pointer-events: none; }
+.mbus svg { width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 2px 2px rgba(0, 0, 0, .25)); }
+.mbus.flip svg { transform: scaleX(-1); }
+
+.maplibregl-ctrl-attrib { font-size: 10px; }
+.maplibregl-ctrl-group { border-radius: 10px !important; border: 1.5px solid #4a3426; }
+
+/* 海の波（引いた状態だけ）: ゆらゆら横にゆれて、ふくらんだりしぼんだりする */
+.seawave { width: 30px; height: 12px; pointer-events: none; }
+.seawave svg { width: 100%; height: 100%; overflow: visible; animation: seawave 3.2s ease-in-out infinite; transform-origin: 50% 100%; }
+@keyframes seawave {
+  0%, 100% { transform: translateX(-3px) scaleY(.75); opacity: .55; }
+  50% { transform: translateX(3px) scaleY(1.1); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) { .seawave svg { animation: none; } }

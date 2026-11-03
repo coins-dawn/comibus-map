@@ -144,9 +144,21 @@ a { color: inherit; }
 /* ---- 大きく見る */
 .modal { position: fixed; inset: 0; z-index: 10; background: rgba(5, 4, 12, .82); overflow-y: auto; }
 .modal[hidden] { display: none; }
-.modal-in { max-width: 380px; margin: 0 auto; padding: 18px 12px 30px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
-.modal .big { width: calc(340px * var(--s, 1)); height: calc(476px * var(--s, 1)); }
+.modal-in { max-width: 420px; margin: 0 auto; padding: 18px 12px 30px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.modal .big { flex: none; width: calc(340px * var(--s, 1)); height: calc(476px * var(--s, 1)); }
 .info { width: 100%; font-size: 13px; color: #e8e4f5; line-height: 1.6; }
+.info .close { display: block; margin: 16px auto 0; }
+/* 横に余裕があるとき: カードを高さいっぱいに、スポットを右に */
+.modal-in.side { max-width: none; min-height: 100%; padding: 14px 24px; flex-direction: row; justify-content: center; align-items: center; gap: 24px; }
+.modal-in.side .info { width: auto; flex: 0 1 400px; min-width: 300px; max-height: calc(100vh - 28px); overflow-y: auto; font-size: 15px; }
+.modal-in.side .info h3 { font-size: 18px; margin-bottom: 8px; }
+.modal-in.side .info li { padding: 5px 0; }
+.modal-in.side .info li svg { width: 40px; height: 40px; border-radius: 8px; }
+.modal-in.side .info .lic { font-size: 12px; margin-top: 14px; }
+.modal-in.side .info .close { margin: 16px 0 0; }
+.modal .x { display: none; }
+.modal-in.side .x { display: block; position: fixed; top: 10px; right: 12px; z-index: 11; width: 40px; height: 40px; border-radius: 50%; border: 1.5px solid #b9b3cc;
+  background: rgba(5, 4, 12, .6); color: #fff; font-size: 22px; line-height: 1; cursor: pointer; }
 .info h3 { margin: 0 0 4px; font-size: 14px; color: #fff3c4; }
 .info ul { margin: 0; padding-left: 0; list-style: none; }
 .info li { display: flex; gap: 8px; align-items: center; padding: 2px 0; }

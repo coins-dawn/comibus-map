@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>コミバスガチャ</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+  <section id="v-top" class="view">
+    <h1 class="logo"><span>コミバス</span>ガチャ</h1>
+    <p class="lead">全国のコミュニティバスのカードを、<b>運賃の合計 500 円まで</b>で 3 枚引きます。</p>
+    <div class="machine-box" id="machine-box">
+      <div id="machine"></div>
+      <div class="drop" id="drop"></div>
+      <div class="flash" id="flash"></div>
+    </div>
+    <button id="pull" class="pull">ガチャを引く</button>
+    <p class="count" id="count"></p>
+  </section>
+
+  <section id="v-result" class="view" hidden>
+    <h2 class="res-title">当たったカード</h2>
+    <p class="total" id="total"></p>
+    <div class="row" id="row"></div>
+    <div class="dots" id="dots"></div>
+    <p class="hint">左右にスワイプして 3 枚を見られます。タップすると大きく見られます</p>
+    <button id="again" class="pull">もう 1 回まわす</button>
+  </section>
+</main>
+
+<div id="modal" class="modal" hidden>
+  <div class="modal-in" id="modal-in"></div>
+</div>
+
+<footer>
+  <p>経路・バス停・運賃: <a href="https://gtfs-data.jp/">GTFSデータリポジトリ</a>に登録された各自治体の GTFS-JP を加工（事業者ごとのライセンスはカードを開くと表示）。
+    スポット: © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>（ODbL）。背景地図: <a href="https://maps.gsi.go.jp/development/ichiran.html">地理院タイル</a>（淡色地図）。イラストは自作。
+    時刻や運賃は変わることがあります。乗る前に各自治体の案内を確かめてください。</p>
+</footer>
+<script src="icons.js"></script>
+<script src="card.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
