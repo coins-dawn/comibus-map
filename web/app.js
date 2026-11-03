@@ -153,6 +153,9 @@ const BACK = `<div class="cardback"><div>${MACHINE.replace('class="machine"', 'c
 
 // ---- 画面
 function fit() {
+  // 結果のカードの幅: 画面の幅から両端の 25px ずつを引いた幅（最大 340px）
+  const row = $('#row');
+  if (row) row.style.setProperty('--w', `${Math.min(340, row.clientWidth - 50)}px`);
   document.querySelectorAll('.slot').forEach((s) => {
     const k = s.clientWidth / 340;
     s.style.height = `${476 * k}px`;
@@ -167,7 +170,14 @@ async function showResult(got) {
   $('#total').innerHTML = `運賃の合計 <b>${total} 円</b> / ${BUDGET} 円`;
   $('#row').innerHTML = got.map((c, i) => `<div class="slot" data-i="${i}">
       <div class="flipper"><div class="face front"><div class="scale">${cardHTML(c)}</div></div><div class="face back"><div class="scale">${BACK}</div></div></div></div>`).join('');
+  $('#dots').innerHTML = got.map((_, i) => `<i class="${i ? '' : 'on'}"></i>`).join('');
   fit();
+  $('#row').scrollLeft = 0;
+  $('#row').onscroll = () => {
+    const r = $('#row'), w = r.children[0].offsetWidth + 12;
+    const i = Math.round(r.scrollLeft / w);
+    [...$('#dots').children].forEach((d, j) => d.classList.toggle('on', j === i));
+  };
   await Promise.all(got.map((c, i) => fillCard($('#row').children[i], c)));
   [...$('#row').children].forEach((s, i) => {
     setTimeout(() => s.classList.add('shown'), still ? 0 : 250 + i * 380);

@@ -40,8 +40,15 @@ a { color: inherit; }
 .res-title { margin: 20px 0 2px; font-size: 22px; font-weight: 900; color: #fff3c4; text-shadow: 0 2px 0 #a8741a; }
 .total { margin: 0 0 12px; font-size: 14px; color: #e8e4f5; }
 .total b { font-size: 18px; color: #ffd75e; }
-.row { width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.slot { position: relative; perspective: 800px; cursor: pointer; }
+.row { width: 100vw; max-width: 560px; display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 4px 0 10px;
+  scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.row::-webkit-scrollbar { display: none; }
+/* 1 枚の幅は、結果を最初に作ったとき（3 枚を 1 画面に並べたとき）の約 3 倍。次のカードの端が見える */
+.row::before, .row::after { content: ""; flex: 0 0 calc((100% - var(--w, 340px)) / 2 - 12px); }
+.slot { position: relative; perspective: 1200px; cursor: pointer; flex: 0 0 var(--w, 340px); scroll-snap-align: center; }
+.dots { display: flex; gap: 8px; margin-top: 4px; }
+.dots i { width: 8px; height: 8px; border-radius: 50%; background: rgba(255, 255, 255, .3); }
+.dots i.on { background: #ffd75e; }
 .flipper { position: absolute; inset: 0; transform-style: preserve-3d; transform: rotateY(180deg); }
 .slot.shown .flipper { animation: reveal .7s cubic-bezier(.3, 1.2, .5, 1) forwards; }
 @keyframes reveal { from { transform: rotateY(180deg) scale(.85); } to { transform: rotateY(0) scale(1); } }
