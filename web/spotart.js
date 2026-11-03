@@ -38,9 +38,9 @@ const SA = (() => {
       }
       return g + (o.shachi ? M.shachi(19, y + 2) : '');
     },
-    // 神社: c=鳥居の色(red/stone/white) n=鳥居の数 hall=社殿 shimenawa=しめ縄 big=大きな鳥居
+    // 神社: c=鳥居の色(red/stone/white/wood/gold/bronze) n=鳥居の数 hall=社殿 shimenawa=しめ縄 big=大きな鳥居
     jinja: (o) => {
-      const c = { red: '#e2483d', stone: '#b9b2a6', white: '#f4f1ea', wood: '#a8743f' }[o.c || 'red'];
+      const c = { red: '#e2483d', stone: '#b9b2a6', white: '#f4f1ea', wood: '#a8743f', gold: '#e6b422', bronze: '#5f8f7e' }[o.c || 'red'];
       const torii = (x, s = 1) => `<g transform="translate(${x} ${57 - 39 * s}) scale(${s})">
         <path d="M0 3 Q15 -1 30 3 L29 6.5 Q15 3 1 6.5 Z" fill="${c}" ${S(2 / s)}/><rect x="3" y="10" width="24" height="3.2" fill="${c}" ${S(1.8 / s)}/>
         <rect x="6" y="5" width="3.6" height="34" fill="${c}" ${S(1.8 / s)}/><rect x="20.4" y="5" width="3.6" height="34" fill="${c}" ${S(1.8 / s)}/>
