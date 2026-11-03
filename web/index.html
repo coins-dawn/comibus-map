@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>コミバスガチャ</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>コミバスガチャ</h1>
+  <nav>
+    <button id="tab-gacha" class="tab on" data-v="gacha">ガチャ</button>
+    <button id="tab-zukan" class="tab" data-v="zukan">図鑑 <span id="zukan-count"></span></button>
+  </nav>
+</header>
+
+<main>
+  <section id="v-gacha" class="view">
+    <p class="lead">全国のコミュニティバスから、<b>きょう行って、帰ってこられる</b>バス停を 1 つ引きます。</p>
+    <div class="opts">
+      <label>予算（往復）
+        <select id="budget">
+          <option value="200">200 円まで</option>
+          <option value="400" selected>400 円まで</option>
+          <option value="600">600 円まで</option>
+        </select>
+      </label>
+      <label>どこで
+        <select id="pref"><option value="">全国</option></select>
+      </label>
+      <label>出発
+        <select id="when">
+          <option value="now">いまから</option>
+          <option value="540">朝 9 時から</option>
+          <option value="780">昼 13 時から</option>
+        </select>
+      </label>
+      <label>しばり
+        <select id="rule">
+          <option value="free">ふつう</option>
+          <option value="2h">2 時間で帰る</option>
+          <option value="end">終点まで行く</option>
+        </select>
+      </label>
+    </div>
+    <button id="pull" class="pull">ガチャを引く</button>
+    <div id="result"></div>
+  </section>
+
+  <section id="v-zukan" class="view" hidden>
+    <div id="zukan-head"></div>
+    <div id="kei-chips" class="chips"></div>
+    <div id="grid" class="grid"></div>
+  </section>
+</main>
+
+<div id="modal" class="modal" hidden>
+  <div class="modal-in">
+    <div id="modal-card"></div>
+    <p class="hint">カードをタップすると裏返ります</p>
+    <button id="modal-close" class="sub">とじる</button>
+  </div>
+</div>
+
+<footer>
+  <p>時刻・停留所・運賃は、<a href="https://gtfs-data.jp/">GTFSデータリポジトリ</a>に登録された各自治体の GTFS-JP を加工して作成しています。
+    事業者ごとのライセンスはカードの裏面と下の一覧に表示しています。時刻は変わることがあります。乗る前に各自治体の時刻表を確かめてください。</p>
+  <details id="credits"><summary>使っているデータの一覧</summary><ul id="credit-list"></ul></details>
+  <p id="built"></p>
+</footer>
+<script src="app.js"></script>
+</body>
+</html>
