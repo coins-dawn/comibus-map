@@ -52,6 +52,22 @@ function mapSVG(card, F, spots, W = BOX_W, H = BOX_H - BOX_T, acc = null) {
   const placed = [];
   const OFFS = [[0, -10], [22, -22], [-22, -22], [30, 6], [-30, 6], [0, 46], [36, -36], [-36, -36], [0, -44]];
   const overlap = (a, b) => Math.max(0, Math.min(a[2], b[2]) - Math.max(a[0], b[0])) * Math.max(0, Math.min(a[3], b[3]) - Math.max(a[1], b[1]));
+  // 駅（Iconify mdi:train）と、駅からバス停まで歩く道（点線）。名札はスポットの絵より先に場所を取り、いちばん上に描く
+  let stPath = '', stTag = '';
+  if (walk) {
+    const [sx, sy] = P(walk.lat, walk.lon);
+    if (walk.path) stPath = `<path d="${dOf(walk.path)}" fill="none" stroke="#3d3d44" stroke-width="2.2" stroke-dasharray="1 4" stroke-linecap="round"/>`;
+    const label = `${walk.st}駅`, tw = label.length * 11 + 26, th = 22;
+    // 名札は駅の点のすぐ上（同じ駅のスポットの絵は下で外す。引き込み線はやめた 2026-11-03）
+    const bx = Math.min(Math.max(sx - tw / 2, 2), W - tw - 2), by = Math.min(Math.max(sy - th - 8, 2), H - th - 2);
+    placed.push([bx, by, bx + tw, by + th]);
+    stTag = `<g transform="translate(${bx.toFixed(1)} ${by.toFixed(1)})"><rect width="${tw}" height="${th}" fill="#3d3d44"/>
+      <svg x="4" y="3" width="16" height="16" viewBox="0 0 24 24"><path fill="#fff" d="${TRAIN_D}"/></svg>
+      <text x="22" y="15.5" font-size="12" font-weight="800" fill="#fff">${esc(label)}</text></g>
+      <circle cx="${sx.toFixed(1)}" cy="${sy.toFixed(1)}" r="3.4" fill="#fff" stroke="#3d3d44" stroke-width="2"/>`;
+    // 同じ駅が沿線のスポット（駅の絵）にもあれば、絵は出さない（名札と重なる）
+    spots = spots.filter((sp) => !(sp[0] === 'station' && (sp[1] === walk.st || Math.hypot(...P(sp[2], sp[3]).map((v, i) => v - [sx, sy][i])) < 30)));
+  }
   let art = '';
   for (const sp of spots) {
     const [x, y] = P(sp[2], sp[3]);
@@ -71,23 +87,11 @@ function mapSVG(card, F, spots, W = BOX_W, H = BOX_H - BOX_T, acc = null) {
       <text class="lbl" x="${best.ix.toFixed(1)}" y="${(best.iy + 9).toFixed(1)}" text-anchor="middle">${esc(label)}</text></g>`;
   }
   const busD = dOf(lines.slice().sort((a, b) => b.length - a.length)[0]);
-  // 駅（Iconify mdi:train）と、駅からバス停まで歩く道（点線）
-  let st = '';
-  if (walk) {
-    const [sx, sy] = P(walk.lat, walk.lon);
-    if (walk.path) st += `<path d="${dOf(walk.path)}" fill="none" stroke="#3d3d44" stroke-width="2.2" stroke-dasharray="1 4" stroke-linecap="round"/>`;
-    const label = `${walk.st}駅`, tw = label.length * 11 + 26;
-    const bx = Math.min(Math.max(sx - tw / 2, 2), W - tw - 2), by = Math.min(Math.max(sy - 30, 2), H - 24);
-    st += `<circle cx="${sx.toFixed(1)}" cy="${sy.toFixed(1)}" r="3.4" fill="#fff" stroke="#3d3d44" stroke-width="2"/>
-      <g transform="translate(${bx.toFixed(1)} ${by.toFixed(1)})"><rect width="${tw}" height="22" rx="0" fill="#3d3d44"/>
-      <svg x="4" y="3" width="16" height="16" viewBox="0 0 24 24"><path fill="#fff" d="${TRAIN_D}"/></svg>
-      <text x="22" y="15.5" font-size="12" font-weight="800" fill="#fff">${esc(label)}</text></g>`;
-  }
   return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice">
     <g class="bgmap">${tiles}</g>
     <path d="${d}" fill="none" stroke="#fff" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
     <path d="${d}" fill="none" stroke="${card.col != null && typeof ROUTE_COLORS !== 'undefined' ? ROUTE_COLORS[card.col] : LINE_COLOR[card.rare]}" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"/>
-    ${st}${dots}${art}
+    ${stPath}${dots}${art}${stTag}
     <path class="bus-path" d="${busD}" fill="none" stroke="none"/>
     <g class="bus"><svg x="-15" y="-24" width="30" height="30" viewBox="0 0 64 64" overflow="visible"><g class="bus-flip">${ICONS.bus}</g></svg></g></svg>`;
 }
