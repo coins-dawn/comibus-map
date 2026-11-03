@@ -67,13 +67,14 @@ body.aboutpage { margin: 0; background: #fff; color: #222; font-family: system-u
 /* 左ペイン: ランキング（PC は常に出す。狭い画面はヘッダのボタンで開く） */
 .rank { position: fixed; left: 0; top: 52px; bottom: 0; width: 300px; z-index: 3; overflow-y: auto; background: #fff;
   padding: 10px 12px 20px; box-sizing: border-box; font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif; }
-.rank h2 { margin: 4px 2px 8px; font-size: 15px; color: #111; }
+.rank h2 { margin: 12px 2px 10px; font-size: 15px; color: #111; }
+.rank { border-top: 1px solid #e3e3e3; }  /* ヘッダとの境目（2026-11-03 ユーザー指示） */
 .rk { display: block; width: 100%; text-align: left; border: 1px solid #e3e3e3; border-radius: 10px; background: #fafafa;
   padding: 8px 10px; margin: 0 0 8px; cursor: pointer; font: inherit; color: #222; }
 .rk:hover { background: #f1f6fb; border-color: #c9dbee; }
 .rk-t { display: block; font-size: 11.5px; font-weight: 700; color: #666; }
 .rk-1 { display: block; font-size: 15px; font-weight: 800; margin-top: 2px; line-height: 1.35; }
-.rk-1 b { display: inline-block; margin-right: 6px; padding: 0 6px; border-radius: 4px; background: #f2c35a; color: #4a3426; font-size: 12px; }
+.rk-1 .crown { width: 20px; height: 20px; vertical-align: -4px; margin-right: 5px; }  /* 1位は王冠（mdi:crown・Iconify） */
 .rk-o { display: block; font-size: 11.5px; color: #555; margin-top: 2px; }
 .rk-v { display: block; font-size: 12.5px; font-weight: 700; color: #1a5fb4; margin-top: 2px; }
 .rank-note { font-size: 11px; color: #888; line-height: 1.6; margin: 6px 2px 0; }

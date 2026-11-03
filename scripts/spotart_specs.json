@@ -1,6 +1,14 @@
 {
-"_": "スポットごとの絵の仕様（自治体ごとの代表のスポット）。[土台, {選択肢}, [目印...], 理由]。目印は web/spotart.js の M。理由は説明文（Wikipedia）か名前・土地の名物から。 土地の名物からは付けない（2026-11-03 ユーザー指示「名称からつけるのはあり」）。null はこれまでの種類ごとの絵。",
-"1": null,
+"_": "スポットごとの絵の仕様（自治体ごとの代表のスポット）。[土台, {選択肢}, [目印...], 理由]。目印は web/spotart.js の M。理由は説明文（Wikipedia）か名前・土地の名物から。 土地の名物からは付けない（2026-11-03 ユーザー指示「名称からつけるのはあり」）。null はこれまでの種類ごとの絵。 2026-11-03: 公式ページ・観光サイトを Web 検索して、スポットそのものの中身から目印を足した（5 番目の要素が出典）。",
+"1": [
+"onsen",
+{},
+[
+"sea"
+],
+"浴室や休憩所から日本海を望む",
+"https://tenki.jp/leisure/1/2/3/37674/"
+],
 "6": null,
 "14": [
 "tera",
@@ -21,7 +29,17 @@
 "画家・鷹山宇一の美術館。花やちょうの絵"
 ],
 "29": null,
-"36": null,
+"36": [
+"museum",
+{
+"k": "minka"
+},
+[
+"stained"
+],
+"離れの窓に小川三知のステンドグラス",
+"https://www.jreast.co.jp/akita/meettheheart/column/article93.html"
+],
 "44": null,
 "53": null,
 "57": [
@@ -34,7 +52,19 @@
 ],
 "義経の馬をつないだという伝説の岩"
 ],
-"67": null,
+"67": [
+"museum",
+{
+"k": "minka"
+},
+[
+[
+"jomon"
+]
+],
+"町内の縄文遺跡の出土品を展示",
+"https://tenki.jp/leisure/2/5/15/53555/"
+],
 "78": null,
 "83": [
 "museum",
@@ -95,7 +125,15 @@
 ],
 "塩竈の港"
 ],
-"181": null,
+"181": [
+"onsen",
+{},
+[
+"bridge"
+],
+"眉川橋ポケットパークの畳敷きの足湯、川の音",
+"https://www.mapple.net/station/283123/spot/"
+],
 "189": [
 "onsen",
 {},
@@ -115,7 +153,17 @@
 ],
 "日銀総裁・結城豊太郎。書籍や絵画を展示（Wikipedia）"
 ],
-"203": null,
+"203": [
+"museum",
+{
+"k": "minka"
+},
+[
+"fossil"
+],
+"移築した民家。ヤマガタダイカイギュウの化石、人力車、青苧",
+"https://www.navitime.co.jp/category/0705012/06324/"
+],
 "207": null,
 "208": [
 "museum",
@@ -156,7 +204,17 @@
 [],
 "七つの石"
 ],
-"265": null,
+"265": [
+"museum",
+{
+"k": "kura"
+},
+[
+"hina"
+],
+"土蔵 3 棟。からむし織・浄瑠璃人形・ひな人形展",
+"https://tenki.jp/leisure/2/9/38/60418/"
+],
 "268": [
 "onsen",
 {},
@@ -193,7 +251,16 @@
 [],
 "東根市（さくらんぼ）"
 ],
-"326": null,
+"326": [
+"zoo",
+{},
+[
+"peacock",
+"monkey"
+],
+"白いクジャク、ニホンザル、ポニー、ウサギ",
+"https://iko-yo.net/facilities/16241"
+],
 "335": null,
 "343": [
 "view",
@@ -206,7 +273,16 @@
 "352": null,
 "362": null,
 "381": null,
-"387": null,
+"387": [
+"onsen",
+{},
+[
+"pine",
+"mountain"
+],
+"地元の金山杉の浴場、内湯から山々を望む",
+"https://tenki.jp/leisure/2/9/37/52283/"
+],
 "392": [
 "museum",
 {
@@ -228,9 +304,27 @@
 ],
 "動物とふれあえる家"
 ],
-"453": null,
+"453": [
+"museum",
+{
+"k": "modern"
+},
+[
+"sl"
+],
+"屋外に市指定文化財の 4 号機関車、撞舞のジオラマ",
+"https://www.city.ryugasaki.ibaraki.jp/shisei/johokokai/huzokukikanseido/huzokukikankaigiroku/fuzoku-kaigiroku/110250a20191220.files/R80130siryou.pdf"
+],
 "462": null,
-"470": null,
+"470": [
+"michi",
+{},
+[
+"daruma"
+],
+"日本一広い道の駅。おもちゃ博物館・わんぱく公園",
+"https://tabi-mag.jp/michinoeki-mibu/"
+],
 "473": [
 "museum",
 {
@@ -252,7 +346,18 @@
 ],
 "伊万里・鍋島焼の美術館"
 ],
-"529": null,
+"529": [
+"museum",
+{
+"k": "modern"
+},
+[
+"onsenmark",
+"bird"
+],
+"温泉のジオラマ、野鳥のコーナー",
+"https://tenki.jp/leisure/3/12/61/44985/"
+],
 "543": [
 "michi",
 {},
@@ -290,7 +395,17 @@
 ],
 "おふろの王様"
 ],
-"609": null,
+"609": [
+"jinja",
+{
+"hall": true
+},
+[
+"peacock"
+],
+"境内に朝香宮から贈られた孔雀の子孫",
+"https://www.tv-tokyo.co.jp/adomachi/backnumber/20240120/144579.html"
+],
 "618": null,
 "630": [
 "sky",
@@ -298,7 +413,17 @@
 [],
 "グライダーの滑空場"
 ],
-"642": null,
+"642": [
+"jinja",
+{
+"hall": true
+},
+[
+"hydrangea"
+],
+"鎮守アジサイ園（約 350 種）",
+"https://www.travel.co.jp/guide/article/39213/"
+],
 "648": [
 "museum",
 {
@@ -330,10 +455,26 @@
 [],
 "佐貫城跡"
 ],
-"708": null,
+"708": [
+"onsen",
+{},
+[
+"sakura"
+],
+"5 階の市民風呂「さくらの湯」「しょうぶの湯」",
+"https://www.city.sakura.lg.jp/material/files/group/49/kihonkeikaku.pdf"
+],
 "716": null,
 "724": null,
-"744": null,
+"744": [
+"tera",
+{},
+[
+"statue"
+],
+"仁王門の木造金剛力士立像（重要文化財）、股くぐり",
+"https://tabi-mag.jp/manmanji-niousama/"
+],
 "747": null,
 "757": [
 "museum",
@@ -345,7 +486,17 @@
 ],
 "森の美術館"
 ],
-"772": null,
+"772": [
+"ferry",
+{
+"k": "boat"
+},
+[
+"swan"
+],
+"道の駅と川の駅が一体。さっぱ舟の遊覧船、コブハクチョウ",
+"https://maruchiba.jp/spot/detail_10173.html"
+],
 "788": [
 "onsen",
 {},
@@ -385,12 +536,28 @@
 [],
 "神津島空港"
 ],
-"842": null,
+"842": [
+"museum",
+{
+"k": "minka"
+},
+[],
+"江戸末期の大型農家の建物（市の重要文化財）",
+"https://www.city.chigasaki.kanagawa.jp/bunka_rekishi/bunkashiryokan"
+],
 "856": null,
 "858": null,
 "863": null,
 "864": null,
-"865": null,
+"865": [
+"park",
+{},
+[
+"sakura"
+],
+"芝生広場と桜の遊歩道、パンプトラック",
+"https://www.kanaloco.jp/news/culture/bunka/article-1005878.html"
+],
 "876": [
 "michi",
 {
@@ -401,7 +568,17 @@
 ],
 "名立の海の道の駅"
 ],
-"879": null,
+"879": [
+"museum",
+{
+"k": "kura"
+},
+[
+"jomon"
+],
+"漢方製薬器、建具の工具、縄文・古墳時代の土器",
+"https://niigata-kankou.or.jp/spot/detail_5713.html"
+],
 "904": null,
 "928": null,
 "950": [
@@ -517,7 +694,17 @@
 "ウイスキーの蒸溜所"
 ],
 "1084": null,
-"1090": null,
+"1090": [
+"museum",
+{
+"k": "house"
+},
+[
+"kasa"
+],
+"旧福岡町役場の洋館（登録有形文化財）。福岡の菅笠の資料",
+"https://www.walkerplus.com/spot/ar0516s50454/data.html"
+],
 "1111": [
 "michi",
 {
@@ -545,10 +732,45 @@
 ],
 "白山"
 ],
-"1178": null,
-"1208": null,
-"1217": null,
-"1221": null,
+"1178": [
+"museum",
+{
+"k": "minka"
+},
+[
+"sake"
+],
+"種油屋・造り酒屋の商家（重要文化財）。べんがら格子",
+"https://online.bunka.go.jp/heritages/search/item_174052:1"
+],
+"1208": [
+"michi",
+{},
+[
+"waterdrop",
+"mountain"
+],
+"名水を汲める道の駅、甲斐駒ヶ岳の麓",
+"https://yomuno.jp/michinoeki/yamanashi/556"
+],
+"1217": [
+"michi",
+{},
+[
+"tea"
+],
+"南部茶がコンセプトの道の駅",
+"https://iko-yo.net/facilities/129126"
+],
+"1221": [
+"onsen",
+{},
+[
+"fish"
+],
+"高アルカリの美人の湯、五右衛門風呂、食事処の山女魚塩焼き",
+"https://news.allabout.co.jp/articles/o/116420/"
+],
 "1222": [
 "onsen",
 {},
@@ -567,7 +789,16 @@
 ],
 "富士山の見える展望塔"
 ],
-"1241": null,
+"1241": [
+"michi",
+{},
+[
+"peach",
+"grape"
+],
+"直売所にサクランボ・ナシ・モモ・リンゴ・ブドウ",
+"https://yomuno.jp/michinoeki/nagano/617"
+],
 "1258": [
 "view",
 {
@@ -581,11 +812,53 @@
 "1260": null,
 "1276": null,
 "1285": null,
-"1289": null,
+"1289": [
+"zoo",
+{},
+[
+"penguin",
+[
+"bird",
+"#3d3d44"
+]
+],
+"アンデスコンドル・ミーアキャット・ペンギン",
+"https://sp.jorudan.co.jp/zoo_aqua/spot_5099.html"
+],
 "1299": null,
-"1310": null,
-"1327": null,
-"1338": null,
+"1310": [
+"museum",
+{
+"k": "minka"
+},
+[
+"kabuto"
+],
+"1624 年の書院（住宅で初の重要文化財）、資料館に武具",
+"https://artscape.jp/museum/25943/"
+],
+"1327": [
+"castle",
+{
+"t": 3
+},
+[
+"sea"
+],
+"諏訪湖に浮かぶように見えた「諏訪の浮城」",
+"https://tabi-mag.jp/nn300/"
+],
+"1338": [
+"michi",
+{
+"r": "#a8743f"
+},
+[
+"pine"
+],
+"伊勢神宮をモチーフにした木曽ヒノキの建物",
+"https://yomuno.jp/michinoeki/nagano/604"
+],
 "1348": null,
 "1355": null,
 "1368": [
@@ -621,12 +894,58 @@
 [],
 "松本城（黒い天守）"
 ],
-"1451": null,
+"1451": [
+"michi",
+{},
+[
+"onsenmark"
+],
+"露天風呂のある温泉と宿泊施設が併設",
+"https://yomuno.jp/michinoeki/nagano/588"
+],
 "1460": null,
-"1465": null,
-"1467": null,
-"1484": null,
-"1493": null,
+"1465": [
+"michi",
+{},
+[
+[
+"flower",
+"#ffc3d6"
+]
+],
+"梅園、赤かぶ漬け・すんき漬けの加工所",
+"https://www.nap-camp.com/mag/spot/105484"
+],
+"1467": [
+"museum",
+{
+"k": "minka"
+},
+[
+"comb"
+],
+"お六櫛造りの作業場を江戸時代のように復元",
+"https://www.mapple.net/station/286145/spot/"
+],
+"1484": [
+"michi",
+{},
+[
+"lavender"
+],
+"ハーブセンター。ハーブ温室・ガーデン、ラベンダーの摘み取り",
+"https://rurubu.jp/andmore/spot/80020280"
+],
+"1493": [
+"michi",
+{},
+[
+"bun",
+"mountain"
+],
+"名物のおやき、北アルプスを望む",
+"https://tabi-mag.jp/nn315/"
+],
 "1496": null,
 "1498": [
 "castle",
@@ -637,7 +956,15 @@
 "雪国の飯山城"
 ],
 "1504": null,
-"1535": null,
+"1535": [
+"michi",
+{},
+[
+"soba"
+],
+"見返り漬け、タチアカネの手打ちそば",
+"https://yomuno.jp/michinoeki/nagano/592"
+],
 "1536": null,
 "1540": null,
 "1547": [
@@ -659,7 +986,15 @@
 ],
 "野麦峠（製糸の女工）"
 ],
-"1588": null,
+"1588": [
+"michi",
+{},
+[
+"lavender"
+],
+"馬瀬川のせせらぎ、初夏のラベンダー",
+"https://www.kankou-gifu.jp/spot/detail_1256.html"
+],
 "1591": null,
 "1596": [
 "castle",
@@ -669,8 +1004,26 @@
 [],
 "萩原諏訪城跡"
 ],
-"1602": null,
-"1621": null,
+"1602": [
+"michi",
+{},
+[
+"tomato"
+],
+"ブランド野菜の加子母トマト、トマトソフト",
+"https://yomuno.jp/michinoeki/gifu/661"
+],
+"1621": [
+"castle",
+{
+"t": 4
+},
+[
+"sea"
+],
+"四層四階の天守、水門川を外堀に使った城",
+"https://tabi-mag.jp/gi0189/"
+],
 "1644": [
 "michi",
 {},
@@ -698,8 +1051,28 @@
 "恵那市（栗きんとん）"
 ],
 "1753": null,
-"1760": null,
-"1767": null,
+"1760": [
+"jinja",
+{
+"c": "stone"
+},
+[
+"lotus"
+],
+"鳥居脇の「名もなき池（モネの池）」のスイレン",
+"https://rurubu.jp/andmore/spot/80101695"
+],
+"1767": [
+"museum",
+{
+"k": "modern"
+},
+[
+"dogu"
+],
+"貝塚と古墳・輪中と低地の農業・高須藩",
+"https://www.kankou-gifu.jp/spot/detail_4492.html"
+],
 "1779": [
 "park",
 {},
@@ -709,7 +1082,15 @@
 "瑞浪（化石の町）"
 ],
 "1788": null,
-"1804": null,
+"1804": [
+"michi",
+{},
+[
+"strawberry"
+],
+"富加町産イチゴのジャム、古代米",
+"https://www.kankou-gifu.jp/spot/detail_3879.html"
+],
 "1806": null,
 "1834": [
 "zoo",
@@ -749,7 +1130,17 @@
 ],
 "1895": null,
 "1902": null,
-"1904": null,
+"1904": [
+"museum",
+{
+"k": "modern"
+},
+[
+"dam"
+],
+"井川ダムと水力発電の展示館（ダムカード）",
+"https://www.at-s.com/spot/article/138119"
+],
 "1905": [
 "michi",
 {},
@@ -776,7 +1167,17 @@
 "牧場"
 ],
 "2001": null,
-"2007": null,
+"2007": [
+"castle",
+{
+"t": 4
+},
+[
+"kabuto"
+],
+"五重の模擬天守（展望塔）、記念館に丹羽氏の甲冑",
+"https://www.aichinow.pref.aichi.jp/spots/detail/105/"
+],
 "2029": [
 "castle",
 {
@@ -794,14 +1195,34 @@
 [],
 "名古屋城（金のしゃちほこ）"
 ],
-"2044": null,
+"2044": [
+"museum",
+{
+"k": "minka"
+},
+[
+"hina"
+],
+"毎年のひな人形展（第 44 回）、窯跡の出土品",
+"https://aichinow.pref.aichi.jp/events/detail/2048/"
+],
 "2055": null,
 "2078": null,
 "2106": null,
 "2108": null,
 "2120": null,
 "2128": null,
-"2142": null,
+"2142": [
+"castle",
+{
+"t": 3
+},
+[
+"telescope"
+],
+"天守風の展望施設スカイワードあさひ（天体観測室）",
+"https://aichinow.pref.aichi.jp/spots/detail/966/"
+],
 "2172": [
 "castle",
 {
@@ -823,7 +1244,17 @@
 ],
 "細井平洲（学者）の記念館"
 ],
-"2205": null,
+"2205": [
+"museum",
+{
+"k": "kura"
+},
+[
+"sake"
+],
+"伝統産業の味噌・たまり、山車のからくり人形",
+"https://iko-yo.net/facilities/78583"
+],
 "2215": null,
 "2228": null,
 "2230": [
@@ -834,7 +1265,15 @@
 ],
 "サウナイーグル"
 ],
-"2248": null,
+"2248": [
+"beach",
+{},
+[
+"oyster"
+],
+"アサリの潮干狩りの人工干潟",
+"https://aichinow.pref.aichi.jp/spots/detail/1152/"
+],
 "2264": null,
 "2297": [
 "museum",
@@ -862,7 +1301,15 @@
 "2388": null,
 "2390": null,
 "2391": null,
-"2400": null,
+"2400": [
+"beach",
+{},
+[
+"pine"
+],
+"約 1km の白い砂浜と、吉宗公が植えさせたという松林",
+"https://www.kankomie.or.jp/spot/detail_3474.html"
+],
 "2410": null,
 "2415": [
 "onsen",
@@ -889,7 +1336,15 @@
 [],
 "洋館の六華苑。桑名（はまぐり）"
 ],
-"2488": null,
+"2488": [
+"michi",
+{},
+[
+"onsenmark"
+],
+"温泉「姫石の湯」が併設",
+"https://yomuno.jp/michinoeki/nara/836"
+],
 "2490": null,
 "2502": [
 "michi",
@@ -949,7 +1404,16 @@
 "近江八幡の水郷めぐり（ヨシ）"
 ],
 "2662": null,
-"2667": null,
+"2667": [
+"michi",
+{},
+[
+"duck",
+"soba"
+],
+"「あぢかま」は琵琶湖で冬を越す鴨に由来。名物の鴨そば、丸子船の展示",
+"https://www.pref.shiga.lg.jp/gt-shiga/20286.html"
+],
 "2698": [
 "castle",
 {
@@ -978,8 +1442,28 @@
 "あかねの湯"
 ],
 "2770": null,
-"2772": null,
-"2789": null,
+"2772": [
+"view",
+{
+"k": "field"
+},
+[
+"tunnel"
+],
+"JR の高架下のレンガ造りの人道トンネル（『細雪』に登場）",
+"https://tabi-mag.jp/hg0647/"
+],
+"2789": [
+"michi",
+{
+"r": "#a8743f"
+},
+[
+"bread"
+],
+"ログハウス風の建物、焼きたてパン・アップルパイ",
+"https://yomuno.jp/michinoeki/hyogo/796"
+],
 "2804": [
 "view",
 {
@@ -1000,7 +1484,15 @@
 ],
 "池のそばの古墳（はにわ）"
 ],
-"2824": null,
+"2824": [
+"beach",
+{},
+[
+"heart"
+],
+"干潮で 500m 以上の干潟。ハート型の干潟が現れることも",
+"https://tanosu.com/trip/114982/"
+],
 "2832": null,
 "2836": null,
 "2858": [
@@ -1025,7 +1517,15 @@
 "SL の公園"
 ],
 "2897": null,
-"2900": null,
+"2900": [
+"michi",
+{},
+[
+"dog"
+],
+"「わんこと楽しむ道の駅」。千種川で川遊びできるドッグラン",
+"https://iko-yo.net/facilities/5647"
+],
 "2905": null,
 "2910": null,
 "2921": null,
@@ -1038,7 +1538,15 @@
 ],
 "モンキーセンター"
 ],
-"2941": null,
+"2941": [
+"michi",
+{},
+[
+"soba"
+],
+"石臼挽きの猪名川産そば粉の十割そば",
+"https://rurubu.jp/andmore/spot/80130402"
+],
 "2945": null,
 "2946": [
 "museum",
@@ -1106,7 +1614,16 @@
 [],
 "津山城跡（桜と石垣）"
 ],
-"3053": null,
+"3053": [
+"michi",
+{},
+[
+"soba",
+"tower"
+],
+"高さ 23m の展望台、半田そうめん",
+"https://www.nap-camp.com/mag/10960"
+],
 "3074": [
 "view",
 {
@@ -1152,7 +1669,15 @@
 "萩の湯"
 ],
 "3124": null,
-"3149": null,
+"3149": [
+"onsen",
+{},
+[
+"frame"
+],
+"大竹伸朗の作品の銭湯。カラフルなタイル",
+"https://www.gltjp.com/ja/directory/item/11355/"
+],
 "3167": null,
 "3168": null,
 "3169": null,
@@ -1170,12 +1695,61 @@
 "牧野富太郎（植物）"
 ],
 "3183": null,
-"3190": null,
-"3192": null,
-"3201": null,
+"3190": [
+"michi",
+{},
+[
+"clocktower"
+],
+"高さ 6m のからくり時計台（毎正時に茶運び人形）",
+"https://www.mapple.net/article/101420/"
+],
+"3192": [
+"jinja",
+{
+"hall": true
+},
+[
+[
+"flower",
+"#9b6bb5"
+]
+],
+"境内に一條氏ゆかりの藤見の御殿跡",
+"https://tabiiro.jp/leisure/s/210120-shimanto-ichijoujinja/"
+],
+"3201": [
+"michi",
+{},
+[
+"shrimp",
+"chestnut"
+],
+"四万十川を望むテラス、川エビ料理、栗",
+"https://yomuno.jp/michinoeki/kochi/1073"
+],
 "3214": null,
-"3219": null,
-"3221": null,
+"3219": [
+"michi",
+{},
+[
+"strawberry"
+],
+"道-1 グランプリ優勝の苺氷り、100m のローラー滑り台",
+"https://rurubu.jp/andmore/spot/80037583"
+],
+"3221": [
+"michi",
+{},
+[
+[
+"train",
+"#2c6fc0"
+]
+],
+"ごめん・なはり線の田野駅と一体の道の駅",
+"https://yomuno.jp/michinoeki/kochi/1071"
+],
 "3223": null,
 "3225": [
 "onsen",
@@ -1196,10 +1770,31 @@
 "3236": null,
 "3239": null,
 "3243": null,
-"3255": null,
+"3255": [
+"michi",
+{},
+[
+"tea",
+"mushroom"
+],
+"お茶・椎茸の物産館、茶畑の展望所",
+"https://yomuno.jp/michinoeki/kochi/1060"
+],
 "3262": null,
 "3264": null,
-"3269": null,
+"3269": [
+"zoo",
+{},
+[
+"giraffe",
+[
+"bird",
+"#7d8a99"
+]
+],
+"サバンナのアミメキリン、ハシビロコウ、カワウソ 3 種",
+"https://www.gltjp.com/ja/directory/item/12966/"
+],
 "3281": [
 "library",
 {},
@@ -1212,8 +1807,26 @@
 "3288": null,
 "3291": null,
 "3297": null,
-"3311": null,
-"3321": null,
+"3311": [
+"michi",
+{},
+[
+"cow",
+"bread"
+],
+"金賞の嘉穂牛、石窯のパン工房",
+"https://www.qsr.mlit.go.jp/n-michi/michi_no_eki/kobetu/usui/usui.html"
+],
+"3321": [
+"tera",
+{},
+[
+"zen",
+"maple"
+],
+"苔寺。白砂に 15 の石の枯山水、300 年の紅葉",
+"https://www.jeepe.jp/ja/articles/komyoji-dazaifu-guide-1593"
+],
 "3325": null,
 "3331": null,
 "3338": null,
@@ -1237,7 +1850,17 @@
 ],
 "有明海の生き物"
 ],
-"3384": null,
+"3384": [
+"castle",
+{
+"t": 3
+},
+[
+"frame"
+],
+"麓の復元天守は美術館（展望台）",
+"https://www.crossroadfukuoka.jp/spot/13009"
+],
 "3393": [
 "view",
 {
@@ -1273,7 +1896,15 @@
 ],
 "桜づつみ公園"
 ],
-"3418": null,
+"3418": [
+"park",
+{},
+[
+"flower"
+],
+"農業公園。4〜5 万株の花、棚田式の農園",
+"https://www.crossroadfukuoka.jp/spot/13147"
+],
 "3424": null,
 "3427": null,
 "3433": null,
@@ -1303,7 +1934,15 @@
 "3463": null,
 "3466": null,
 "3467": null,
-"3469": null,
+"3469": [
+"michi",
+{},
+[
+"soba"
+],
+"「そばづくしの駅」。洞門そば・そば打ち体験",
+"https://www.qsr.mlit.go.jp/n-michi/michi_no_eki/kobetu/yaba/yaba.html"
+],
 "3470": null,
 "3471": null,
 "3472": [
@@ -1316,6 +1955,14 @@
 ],
 "3475": null,
 "3481": null,
-"3482": null,
+"3482": [
+"castle",
+{
+"ruin": true
+},
+[],
+"中津城の内堀の土塁の遺構（おかこい山）",
+"https://sitereports.nabunken.go.jp/files/attach/39/39255/33576_1_%E3%81%8A%E3%81%8B%E3%81%93%E3%81%84%E5%B1%B1.pdf"
+],
 "3507": null
 }

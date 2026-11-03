@@ -6,8 +6,6 @@ const RANKS = [
   { t: '総距離が短い', f: (c) => -c.km, ok: (c) => c.nstops >= 3 && c.km > 0, v: (c) => `${c.km}km` },
   { t: '距離あたりのバス停が多い', f: (c) => c.nstops / c.km, ok: (c) => c.km >= 1, v: (c) => `1km に ${(c.nstops / c.km).toFixed(1)} か所` },
   { t: '距離あたりのバス停が少ない', f: (c) => -c.nstops / c.km, ok: (c) => c.km >= 1, v: (c) => `1km に ${(c.nstops / c.km).toFixed(2)} か所` },
-  { t: '距離あたりの運賃が安い', f: (c) => -(c.fare_max || c.fare) / c.km, ok: (c) => c.km >= 1 && c.fare > 0,
-    v: (c) => `1km あたり ${((c.fare_max || c.fare) / c.km).toFixed(1)} 円（${c.fare_max && c.fare_max !== c.fare ? `${c.fare}～${c.fare_max}` : c.fare} 円で ${c.km}km）` },
 ];
 
 function routeBounds(i) {
@@ -25,7 +23,7 @@ function buildRanking() {
     const c = CARDS[best];
     return `<button class="rk" data-i="${best}">
       <small class="rk-t">${esc(r.t)}</small>
-      <span class="rk-1"><b>1位</b>${esc(c.name)}</span>
+      <span class="rk-1"><img class="crown" src="img/crown.svg" alt="1位" title="1位">${esc(c.name)}</span>
       <span class="rk-o">${esc(c.pref)}・${esc(c.op)}</span>
       <span class="rk-v">${esc(r.v(c))}</span></button>`;
   }).join('');
