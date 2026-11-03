@@ -175,3 +175,20 @@ footer { font-size: 11px; color: #9c96b3; line-height: 1.6; padding: 26px 14px 3
   .ic, .ic *, .spark, .machine-box * { animation: none !important; }
   .slot.shown .flipper { animation: none; transform: none; }
 }
+
+/* レア度を出さないカード（2026-11-03）: 金の外枠、名前の帯は地図の線の色 */
+.card.std .plate { background: linear-gradient(color-mix(in srgb, var(--pc) 70%, #fff), var(--pc) 55%, color-mix(in srgb, var(--pc) 75%, #000)); }
+.card.std .holo { opacity: .2; }
+.card.std .head { height: 28px; }
+.card.std .map { height: 338px; }
+.card.std .plate { padding: 5px 12px; }
+.card.std .nm { font-size: 19px; } .card.std .nm.m { font-size: 16px; } .card.std .nm.l { font-size: 13px; }
+/* 右の欄: 路線の概要 */
+.info h3 + .stat { margin-top: 2px; }
+.stat { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; margin: 0 0 14px; font-size: 13px; }
+.stat dt { color: #b9b3cc; font-weight: 700; white-space: nowrap; }
+.stat dd { margin: 0; color: #fff; }
+.stat dd small { color: #b9b3cc; }
+.modal-in.side .stat { font-size: 14.5px; }
+/* カードの角は丸めない（2026-11-03 ユーザー指示） */
+.card.std, .card.std *, .card.std .holo { border-radius: 0 !important; }

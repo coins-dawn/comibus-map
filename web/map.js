@@ -147,6 +147,7 @@ async function init() {
   const showPrefs = () => { const on = map.getZoom() < 7; prefs.forEach((m) => (on ? m.addTo(map) : m.remove())); };
   initWaves(japan.land);
   map.on('load', () => {
+    if (typeof buildRanking === 'function') buildRanking();
     const at = params.get('at');  // ?at=ズーム/緯度/経度（キャプチャ用）
     if (at) { const [z, la, lo] = at.split('/').map(Number); map.jumpTo({ zoom: z, center: [lo, la] }); }
     showPrefs(); refreshWaves(); refreshSpots();

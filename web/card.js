@@ -21,7 +21,7 @@ const TILE = 'https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png';
 const merc = (lat, lon) => { const r = lat * Math.PI / 180; return [(lon + 180) / 360, (1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2]; };
 const LINE_COLOR = { SSR: '#8a4fd6', SR: '#e2483d', R: '#2c6fc0' };
 
-function mapSVG(card, F, spots, W = 300, H = 332) {
+function mapSVG(card, F, spots, W = 300, H = 338) {
   const rs = new Set(card.rs);
   let lines = F.shape.filter((l) => rs.has(l[0])).map((l) => l[1]);
   const trips = F.trips.filter((t) => rs.has(t[0]));
@@ -97,16 +97,16 @@ function tick(now) {
 requestAnimationFrame(tick);
 
 function cardHTML(card) {
+  // レア度は出さない（2026-11-03 ユーザー指示）。運賃・バス停・長さはカードの下に残す。名前の帯は地図の線と同じ色
   const nmc = card.name.length > 16 ? 'l' : card.name.length > 12 ? 'm' : '';
-  return `<div class="card ${card.rare}">
+  const col = card.col != null && typeof ROUTE_COLORS !== 'undefined' ? ROUTE_COLORS[card.col] : '#2c6fc0';
+  return `<div class="card std">
     <div class="inner">
       <div class="head">
-        <div class="gem"><b>${card.rare}</b></div>
-        <div class="op"><small>No.${String(card.no).padStart(4, '0')}・${esc(card.pref)}</small><span>${esc(card.op)}</span></div>
-        <div class="stars">${STARS[card.rare]}</div>
+        <div class="op"><small>${esc(card.pref)}・${esc(card.org)}</small><span>${esc(card.op)}</span></div>
       </div>
       <div class="frame"><div class="map"></div></div>
-      <div class="plate"><div class="nm ${nmc}">${esc(card.name)}</div><div class="sub">${esc(card.org)}・${card.nstops} のバス停をむすぶ</div></div>
+      <div class="plate" style="--pc:${col}"><div class="nm ${nmc}">${esc(card.name)}</div></div>
       <div class="stats">
         <div class="st"><small>運賃</small>${card.fare_max && card.fare_max !== card.fare
           ? `<b class="range">${card.fare}<i>円</i>～${card.fare_max}<i>円</i></b>` : `<b>${card.fare}<i>円</i></b>`}</div>
@@ -115,9 +115,22 @@ function cardHTML(card) {
       </div>
     </div>
     <div class="holo"></div>
-    ${card.rare !== 'R' ? `<i class="spark" style="left:-4px;top:58px;animation-delay:.2s"></i><i class="spark" style="right:-3px;top:190px;animation-delay:1.1s"></i>
-      <i class="spark" style="left:22px;bottom:-4px;animation-delay:1.7s"></i><i class="spark" style="right:30px;top:-5px;animation-delay:.7s"></i>` : ''}
   </div>`;
+}
+
+// 路線の概要（右の欄）。代表の日（2026-11-04 水曜・11-07 土曜・11-08 日曜）の便の数と、始発・終発
+const DAY0 = new Date('2026-11-01T00:00:00');
+const hm = (m) => `${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}`;
+function routeStats(card, F) {
+  const rs = new Set(card.rs), trips = F.trips.filter((t) => rs.has(t[0]));
+  const on = (iso) => {
+    const i = Math.round((new Date(iso + 'T00:00:00') - DAY0) / 864e5), code = F.days.charCodeAt(i) - 48;
+    const sv = new Set(F.pats[code] || []);
+    return trips.filter((t) => sv.has(t[1]));
+  };
+  const wd = on('2026-11-04'), sa = on('2026-11-07'), su = on('2026-11-08');
+  const span = (ts) => ts.length ? `${hm(Math.min(...ts.map((t) => t[2])))}〜${hm(Math.max(...ts.map((t) => t[2])))}` : '';
+  return { wd: wd.length, sa: sa.length, su: su.length, span: span(wd.length ? wd : sa.length ? sa : su) };
 }
 
 async function fillCard(el, card) {
@@ -146,12 +159,25 @@ window.addEventListener('resize', layoutModal);
 
 async function openModal(card) {
   await loadSpotArt();
-  const S = (await getJSON(`data/s/${card.k}.json`))[String(card.rs[0])] || [];
+  const [F, S0] = await Promise.all([getJSON(`data/f/${card.k}.json`), getJSON(`data/s/${card.k}.json`)]);
+  const S = S0[String(card.rs[0])] || [], st = routeStats(card, F);
+  const fare = card.fare_max && card.fare_max !== card.fare ? `${card.fare}円～${card.fare_max}円` : `${card.fare}円`;
+  const days = st.wd || st.sa || st.su ? `平日 ${st.wd} 便・土曜 ${st.sa} 便・日曜 ${st.su} 便` : '代表の日（11 月 4〜8 日）の運行なし';
   $('#modal-in').innerHTML = `<div class="big"><div class="scale">${cardHTML(card)}</div></div>
     <div class="info">
+      <h3>${esc(card.name)}</h3>
+      <dl class="stat">
+        <dt>運行</dt><dd>${esc(card.org)}「${esc(card.op)}」</dd>
+        <dt>運賃</dt><dd>${fare}</dd>
+        <dt>長さ</dt><dd>${card.km}km</dd>
+        <dt>バス停</dt><dd>${card.nstops} か所${card.km >= 1 ? `（1km に ${(card.nstops / card.km).toFixed(1)} か所）` : ''}</dd>
+        <dt>便の数</dt><dd>${days}${card.alt ? '<br><small>データの期間外のため、期間内の同じ曜日で数えています</small>' : ''}</dd>
+        ${st.span ? `<dt>始発〜終発</dt><dd>${st.span}（出発の時刻）</dd>` : ''}
+        ${card.loop ? '<dt>形</dt><dd>始点と終点が同じ便があります（循環）</dd>' : ''}
+      </dl>
       ${S.length ? `<h3>沿線のスポット</h3><ul>${S.map((s) => `<li><svg viewBox="0 0 64 64">${spotIcon(s)}</svg><span>${esc(s[1])} <small>${CAT_LABEL[s[0]]}</small></span></li>`).join('')}</ul>` : ''}
       <p class="lic">${esc(card.org)}「${esc(card.op)}」の GTFS（${esc(card.from)}〜${esc(card.to)}、${card.license_url ? `<a href="${esc(card.license_url)}">${esc(card.license)}</a>` : esc(card.license || 'ライセンス表記なし')}）${card.page ? `／<a href="${esc(card.page)}">配布ページ</a>` : ''}。
-        ${card.est ? '経路の形は公開されていないため、バス停の間を OpenStreetMap の道路で経路探索して描いています（推定）。' : ''}レア度は路線の長さで決めています（短いほどレア）。</p>
+        ${card.est ? '経路の形は公開されていないため、バス停の間を OpenStreetMap の道路で経路探索して描いています（推定）。' : ''}</p>
     </div>`;
   layoutModal();
   $('#modal').hidden = false;

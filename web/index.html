@@ -5,15 +5,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>全国コミバスまっぷ</title>
 <link href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=15">
-<link rel="stylesheet" href="map.css?v=15">
+<link rel="stylesheet" href="style.css?v=20">
+<link rel="stylesheet" href="map.css?v=20">
 </head>
 <body class="mappage">
 <div id="map"></div>
 <header class="mbar">
   <a class="brand" href="./" title="はじめの画面にもどる"><img src="img/bus.svg" alt=""><span class="logo">全国コミバスまっぷ</span></a>
+  <button class="rank-btn" id="rank-btn">ランキング</button>
   <a class="about-link" href="about.html">このサービスについて</a>
 </header>
+<aside class="rank" id="rank">
+  <h2>ランキング</h2>
+  <div id="rank-list"></div>
+  <p class="rank-note">長さは、路線が通るとなりあうバス停の間を 1 回ずつ足した距離（何周しても、行って戻っても二重に数えない）。カード 1 枚ずつで比べています。</p>
+</aside>
 
 <div id="modal" class="modal" hidden>
   <div class="modal-in" id="modal-in"></div>
@@ -21,8 +27,9 @@
 
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script src="icons.js"></script>
-<script src="card.js?v=15"></script>
-<script src="spotart.js?v=15"></script>
-<script src="map.js?v=15"></script>
+<script src="card.js?v=20"></script>
+<script src="spotart.js?v=20"></script>
+<script src="map.js?v=20"></script>
+<script src="ranking.js?v=20"></script>
 </body>
 </html>

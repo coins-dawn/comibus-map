@@ -107,6 +107,24 @@ class Grid:
                         yield it
 
 
+def route_len(trips, S):
+    """路線の長さ（m）: 便が通る「となりあうバス停の間」を、向きを問わず 1 回ずつ足す。
+    何周もする便（1 日分を 1 便にしたデータ）や、行って戻る便を二重に数えない。
+    時刻から見て時速 80km を超える区間・時刻の差がないのに 3km 以上飛ぶ区間は、座標の誤りとみなして数えない。"""
+    edges = {}
+    for t in trips:
+        seq, ts = t[3], t[4]
+        for k in range(1, len(seq)):
+            e = frozenset((seq[k - 1], seq[k]))
+            if len(e) < 2 or e in edges:
+                continue
+            a, b = S[seq[k - 1]], S[seq[k]]
+            d = dist((a[1], a[2]), (b[1], b[2]))
+            dt = ts[2 * k] - ts[2 * (k - 1) + 1]
+            edges[e] = 0 if (dt > 0 and d / dt > 80000 / 60) or (dt <= 0 and d > 3000) else d
+    return sum(edges.values())
+
+
 def clean_name(route, feed):
     n = re.sub(r'^【[^】]*】', '', route).strip()
     n = n.replace('　', ' ')
@@ -167,7 +185,7 @@ def main():
             used = sorted({i for t in trips for i in t[3]})
             if len(used) < 2:
                 continue
-            length = max(plen([(S[i][1], S[i][2]) for i in t[3]]) for t in trips)
+            length = route_len(trips, S)
             loop = any(t[3][0] == t[3][-1] for t in trips)
             # 沿線のスポット
             cand = {}
