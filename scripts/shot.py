@@ -34,7 +34,7 @@ async def main():
         for name, q, scheme, store, act in shots:
             pg = await page(scheme, store)
             await pg.goto(URL + q, wait_until="networkidle")
-            await pg.wait_for_timeout(900)
+            await pg.wait_for_timeout(2500)
             if act == "flip":
                 await pg.click("#result .card")
                 await pg.wait_for_timeout(800)
@@ -49,7 +49,7 @@ async def main():
         store = {"drawn": {k: 1 for k in ks}, "rode": {k: [{"date": "2026-11-04", "dst": "x"}] for k in ks[:-4]}}
         pg = await page("light", store)
         await pg.goto(URL + "?view=zukan", wait_until="networkidle")
-        await pg.wait_for_timeout(1500)
+        await pg.wait_for_timeout(4000)
         await pg.screenshot(path=f"{OUT}/10-zukan.png", full_page=False)
         await pg.click(".slot.has")
         await pg.wait_for_timeout(700)

@@ -52,6 +52,9 @@ nav { display: flex; gap: 6px; }
 .card .st { letter-spacing: .05em; }
 .art-box { position: relative; background: rgba(255, 255, 255, .55); border-radius: 8px; margin: 6px 0 8px; aspect-ratio: 1; }
 .art { width: 100%; height: 100%; display: block; }
+.art-box { overflow: hidden; }
+.art-box .shape { width: 100%; height: 100%; display: block; }
+.bgmap { opacity: .32; filter: grayscale(.6); }
 .art .tick, .art .ring { stroke: currentColor; stroke-opacity: .13; stroke-dasharray: 2 3; fill: none; }
 .art .hr { font-size: 8px; fill: currentColor; opacity: .45; }
 .sub-line { font-size: 11.5px; opacity: .8; margin-top: 2px; }

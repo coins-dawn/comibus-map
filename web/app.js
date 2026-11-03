@@ -224,18 +224,36 @@ function artSVG(card, F, W, H) {
     <g fill="none" stroke-width="1.3" stroke-linejoin="round" stroke-linecap="round" opacity=".8" style="mix-blend-mode:multiply">${paths}</g></svg>`;
 }
 
-// 路線の形（注記なし）。路線ごとに色を分け、便がいちばん多いバス停に丸を付ける
+// 路線の形（注記なし）。路線ごとに色を分け、便がいちばん多いバス停に丸を付ける。
+// 背景に地理院タイル（淡色地図）を薄く敷く。線とタイルを合わせるため、投影はウェブメルカトル。
+const TILE = 'https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png';
+const merc = (lat, lon) => {
+  const r = lat * Math.PI / 180;
+  return [(lon + 180) / 360, (1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2];
+};
 function shapeSVG(card, F, W, H) {
   const P = palette(card);
   const ls = F.shape || [];
-  const pts = ls.flatMap((l) => l[1]);
+  const pts = ls.flatMap((l) => l[1]).map((p) => merc(p[0], p[1]));
   if (!pts.length) return '';
-  const lat0 = pts.reduce((a, p) => a + p[0], 0) / pts.length, k = Math.cos(lat0 * Math.PI / 180);
-  const xs = pts.map((p) => p[1] * k), ys = pts.map((p) => p[0]);
-  const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
-  const pad = 14, s = Math.min((W - 2 * pad) / (x1 - x0 || 1e-6), (H - 2 * pad) / (y1 - y0 || 1e-6));
-  const ox = (W - (x1 - x0) * s) / 2, oy = (H - (y1 - y0) * s) / 2;
-  const X = (p) => (ox + (p[1] * k - x0) * s).toFixed(1), Y = (p) => (H - oy - (p[0] - y0) * s).toFixed(1);
+  const x0 = Math.min(...pts.map((p) => p[0])), x1 = Math.max(...pts.map((p) => p[0]));
+  const y0 = Math.min(...pts.map((p) => p[1])), y1 = Math.max(...pts.map((p) => p[1]));
+  const pad = 14, s = Math.min((W - 2 * pad) / (x1 - x0 || 1e-9), (H - 2 * pad) / (y1 - y0 || 1e-9));
+  // 画面の左上に当たる世界座標（0〜1）
+  const wx = (x0 + x1) / 2 - W / 2 / s, wy = (y0 + y1) / 2 - H / 2 / s;
+  const X = (p) => { const m = merc(p[0], p[1]); return ((m[0] - wx) * s).toFixed(1); };
+  const Y = (p) => { const m = merc(p[0], p[1]); return ((m[1] - wy) * s).toFixed(1); };
+  // タイル: 画面 2 倍の解像度に近いズーム（5〜16）
+  const z = Math.max(5, Math.min(16, Math.round(Math.log2(s * 2 / 256))));
+  const n = 2 ** z, ts = s / n;
+  let tiles = '';
+  for (let tx = Math.floor(wx * n); tx <= Math.floor((wx + W / s) * n); tx++) {
+    for (let ty = Math.floor(wy * n); ty <= Math.floor((wy + H / s) * n); ty++) {
+      if (ty < 0 || ty >= n) continue;
+      const url = TILE.replace('{z}', z).replace('{x}', ((tx % n) + n) % n).replace('{y}', ty);
+      tiles += `<image href="${url}" x="${((tx / n - wx) * s).toFixed(2)}" y="${((ty / n - wy) * s).toFixed(2)}" width="${(ts + 0.5).toFixed(2)}" height="${(ts + 0.5).toFixed(2)}" preserveAspectRatio="none"/>`;
+    }
+  }
   const d = (l) => l.map((p, i) => `${i ? 'L' : 'M'}${X(p)} ${Y(p)}`).join('');
   // 長い線から先に描き、短い線（枝）を上に重ねる
   const order = ls.slice().sort((a, b) => b[1].length - a[1].length);
@@ -244,6 +262,7 @@ function shapeSVG(card, F, W, H) {
   const hub = F.stops.find((x) => x[0] === card.hub);
   const hubDot = hub ? `<circle cx="${X([hub[1], hub[2]])}" cy="${Y([hub[1], hub[2]])}" r="5" fill="#fff" stroke="${P.ink}" stroke-width="2.4"/>` : '';
   return `<svg viewBox="0 0 ${W} ${H}" class="shape" aria-hidden="true">
+    <g class="bgmap">${tiles}</g>
     <g fill="none" stroke="#fff" stroke-opacity=".9" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round">${halo}</g>
     <g fill="none" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">${body}</g>${hubDot}</svg>`;
 }
@@ -273,7 +292,7 @@ function cardHTML(card, F, big, color) {
         <dt>いちばん長い線</dt><dd>${card.len} km</dd>
         <dt>便がいちばん多いバス停</dt><dd>${esc(card.hub)}</dd>
       </dl>
-      <p class="lic">表の形: ${card.shape ? '事業者の路線形状' : 'バス停を順につないだ線'}。◯は便がいちばん多いバス停。データ: ${esc(card.org)}（${esc(card.license || 'ライセンス表記なし')}）／GTFSデータリポジトリ</p>
+      <p class="lic">表の形: ${card.shape ? '事業者の路線形状' : 'バス停を順につないだ線'}。◯は便がいちばん多いバス停。背景: 地理院タイル（淡色地図）。データ: ${esc(card.org)}（${esc(card.license || 'ライセンス表記なし')}）／GTFSデータリポジトリ</p>
     </div>
   </div>`;
 }
