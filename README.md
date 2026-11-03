@@ -6,7 +6,7 @@
 
 ```bash
 python3 scripts/build_data.py                  # web/data/ を作る（約 15 秒）
-python3 -m http.server 8010 -d web             # http://127.0.0.1:8010/
+python3 -m http.server 8005 -d web             # http://127.0.0.1:8005/
 python3 scripts/shot.py                        # 画面キャプチャ（Playwright。サーバを立ててから）
 ```
 

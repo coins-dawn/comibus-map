@@ -1,12 +1,12 @@
 """画面キャプチャ（スマホの幅）。web/ を配ってから撮る。
 
-    python3 -m http.server 8010 -d web &
+    python3 -m http.server 8005 -d web &
     python3 scripts/shot.py
 """
 import asyncio, json, os, sys
 from playwright.async_api import async_playwright
 
-URL = "http://127.0.0.1:8010/"
+URL = "http://127.0.0.1:8005/"
 OUT = os.environ.get("SHOT_DIR", "shots")
 
 
