@@ -1,372 +1,227 @@
 'use strict';
-// コミバスガチャ: 全国のコミュニティバス（均一運賃）から「きょう行って帰ってこられるバス停」を引き、
-// 乗ったら図鑑にカードが入る。カードの表は時刻表から描いた模様、裏は路線の形と数字。
-
+// コミバスガチャ: 全国のコミュニティバスの路線カードを、運賃の合計 500 円までで 3 枚引く。
+// カードの絵の窓には、路線の形・バス停・沿線のスポットのイラスト・走るバスを描く。
 const $ = (s) => document.querySelector(s);
 const params = new URLSearchParams(location.search);
-const STORE = 'comibus-gacha-v1';
-const STAY = 30;          // 行った先で過ごす最低の分
-const DAY0 = 5 * 60, DAY1 = 24 * 60;  // 模様の横軸（5 時〜24 時）
+const BUDGET = 500, PICKS = 3;
+const RARE_P = { SSR: 0.06, SR: 0.24, R: 0.70 };
+const STARS = { SSR: '★★★★★', SR: '★★★★', R: '★★★' };
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-let CARDS = [], BYKEY = {}, state = load();
-const feedCache = {};
-
-// ---- 乱数（?seed= を付けると同じ結果になる。キャプチャ用）
+// 乱数（?seed= を付けると同じ結果。キャプチャ用）
 let rnd = Math.random;
 if (params.get('seed')) {
   let a = +params.get('seed') >>> 0;
   rnd = () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
 }
 const pick = (arr) => arr[Math.floor(rnd() * arr.length)];
-function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 
-function load() {
-  try { return Object.assign({ drawn: {}, rode: {} }, JSON.parse(localStorage.getItem(STORE) || '{}')); }
-  catch (e) { return { drawn: {}, rode: {} }; }
-}
-function save() { localStorage.setItem(STORE, JSON.stringify(state)); }
+let CARDS = [];
+const cache = {};
+const getJSON = (u) => (cache[u] = cache[u] || fetch(u).then((r) => r.json()));
 
-// ---- 日本時間の「きょう」と「いま」（?date=2026-11-04&t=540 で固定できる）
-function jstNow() {
-  const d = new Date(Date.now() + 9 * 3600e3);
-  let date = d.toISOString().slice(0, 10), min = d.getUTCHours() * 60 + d.getUTCMinutes();
-  if (params.get('date')) date = params.get('date');
-  if (params.get('t')) min = +params.get('t');
-  return { date, min };
-}
-const hm = (m) => `${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}`;
-const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const stars = (n) => '★'.repeat(n) + '☆'.repeat(3 - n);
-const RARE = { 3: 'レア', 2: 'ややレア', 1: 'ふつう' };
-
-async function feed(k) {
-  if (!feedCache[k]) feedCache[k] = fetch(`data/f/${k}.json`).then((r) => r.json());
-  return feedCache[k];
-}
-
-// その日に動く service の集合。範囲外の日は、範囲内の同じ曜日で代える
-function services(F, date) {
-  const d0 = new Date(F.start + 'T00:00:00Z'), d = new Date(date + 'T00:00:00Z');
-  let i = Math.round((d - d0) / 864e5);
-  const n = F.days.length;
-  if (i < 0) i = ((i % 7) + 7) % 7;
-  if (i >= n) i = n - 7 + ((i - (n - 7)) % 7);
-  return new Set(F.pats[F.days.charCodeAt(i) - 48]);
-}
-
-// 便を「停留所の並び」「到着」「出発」に開く
-function expand(tr) {
-  const [r, sv, t0, s, ts] = tr;
-  return { r, sv, s, arr: s.map((_, i) => t0 + ts[2 * i]), dep: s.map((_, i) => t0 + ts[2 * i + 1]) };
-}
-
-// ---- ガチャ: 1 つのフィードで、行って帰れる行き先を集める
-function candidates(F, card, date, from, rule) {
-  const sv = services(F, date);
-  const trips = F.trips.filter((t) => sv.has(t[1])).map(expand);
-  const hub = F.stops.findIndex((s) => s[0] === card.hub);
-  if (hub < 0 || !trips.length) return [];
-  const best = new Map();  // 行き先 → いちばん早く帰れる組み合わせ
-  for (const o of trips) {
-    const i = o.s.indexOf(hub);
-    if (i < 0 || o.dep[i] < from) continue;
-    for (let j = i + 1; j < o.s.length; j++) {
-      const dst = o.s[j];
-      if (dst === hub) break;
-      if (rule === 'end' && j !== o.s.length - 1) continue;
-      const a = o.arr[j];
-      let back = null;
-      for (const b of trips) {
-        const p = b.s.indexOf(dst);
-        if (p < 0 || b.dep[p] < a + STAY) continue;
-        const q = b.s.indexOf(hub, p + 1);
-        if (q < 0) continue;
-        if (!back || b.arr[q] < back.end) back = { trip: b, p, q, end: b.arr[q] };
-      }
-      if (!back) continue;
-      if (rule === '2h' && back.end - o.dep[i] > 120) continue;
-      const c = { dst, out: o, i, j, back, start: o.dep[i] };
-      const prev = best.get(dst);
-      // 同じ行き先なら、出発が早いほう（待たずに乗れる）
-      if (!prev || c.start < prev.start) best.set(dst, c);
+// ---- 3 枚を引く。レア度を先に引き、その中から、残りの予算に収まるものを選ぶ
+function draw() {
+  for (let attempt = 0; attempt < 200; attempt++) {
+    const got = [];
+    let left = BUDGET;
+    for (let i = 0; i < PICKS; i++) {
+      const need = (PICKS - i - 1) * 100;  // 残りの枚数のぶん、最低 100 円ずつ残す
+      let x = rnd(), tier = 'R';
+      for (const t of ['SSR', 'SR', 'R']) { if (x < RARE_P[t]) { tier = t; break; } x -= RARE_P[t]; }
+      const pool = CARDS.filter((c) => c.rare === tier && c.fare <= left - need && !got.some((g) => g.k === c.k));
+      if (!pool.length) break;
+      const c = pick(pool);
+      got.push(c); left -= c.fare;
     }
+    if (got.length === PICKS) return got;
   }
-  return [...best.values()];
+  return [];
 }
 
-async function pull() {
-  const budget = +$('#budget').value, pref = $('#pref').value, rule = $('#rule').value;
-  const now = jstNow();
-  let from = $('#when').value === 'now' ? now.min : +$('#when').value;
-  const pool = shuffle(CARDS.filter((c) => !c.yoyaku && c.fare * 2 <= budget && (!pref || c.pref === pref)));
-  const box = $('#result');
-  if (!pool.length) { box.innerHTML = '<p class="msg">この条件に合うコミバスがありません。予算を上げるか、地域を広げてください。</p>'; return; }
-  box.innerHTML = '<p class="msg">引いています…</p>';
-  $('#pull').disabled = true;
-  try {
-    for (const tryFrom of [from, null]) {  // いまからで見つからなければ、あすの朝 9 時で引き直す
-      let date = now.date, f = tryFrom;
-      if (tryFrom === null) {
-        const d = new Date(now.date + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + 1);
-        date = d.toISOString().slice(0, 10); f = 540;
-      }
-      for (const card of pool.slice(0, 40)) {
-        const F = await feed(card.k);
-        const cs = candidates(F, card, date, f, rule);
-        if (cs.length) {
-          const c = pick(cs);
-          state.drawn[card.k] = state.drawn[card.k] || Date.now();
-          save();
-          showResult(card, F, c, date, tryFrom === null);
-          updateCount();
-          return;
-        }
-      }
-    }
-    box.innerHTML = '<p class="msg">この条件で行って帰ってこられるバス停が見つかりませんでした。しばりをゆるめてみてください。</p>';
-  } finally { $('#pull').disabled = false; }
-}
-
-function showResult(card, F, c, date, tomorrow) {
-  const S = F.stops, o = c.out, b = c.back.trip;
-  const dst = S[c.dst], hubName = card.hub;
-  const stay = b.dep[c.back.p] - o.arr[c.j];
-  const total = c.back.end - c.start;
-  const wd = '日月火水木金土'[new Date(date + 'T00:00:00Z').getUTCDay()];
-  const rode = !!state.rode[card.k];
-  const nstop = c.j - c.i;
-  $('#result').innerHTML = `
-    <div class="res">
-      <div class="res-card">${cardHTML(card, F, true, true)}</div>
-      <div class="trip">
-        <p class="dest-lead">${tomorrow ? 'きょうはもう帰ってこられる便がないので、<b>あす</b>の朝で引きました。<br>' : ''}${esc(date.slice(5).replace('-', '/'))}（${wd}）、ここへ行ってきてください</p>
-        <p class="dest">${esc(dst[0])}</p>
-        <p class="where">${esc(card.pref)}・${esc(card.name)}</p>
-        <ol class="legs">
-          <li><span class="t">${hm(o.dep[c.i])}</span> <b>${esc(hubName)}</b> から乗る<small>${esc(F.routes[o.r])}</small></li>
-          <li><span class="t">${hm(o.arr[c.j])}</span> <b>${esc(dst[0])}</b> で降りる<small>${nstop} 個先のバス停</small></li>
-          <li class="stay">ここで ${stay} 分すごす</li>
-          <li><span class="t">${hm(b.dep[c.back.p])}</span> <b>${esc(dst[0])}</b> から帰りの便<small>${esc(F.routes[b.r])}</small></li>
-          <li><span class="t">${hm(c.back.end)}</span> <b>${esc(hubName)}</b> に戻る</li>
-        </ol>
-        <p class="sum">往復 <b>${card.fare * 2} 円</b>・全部で ${Math.floor(total / 60) ? Math.floor(total / 60) + ' 時間 ' : ''}${total % 60} 分</p>
-        <p class="links"><a href="https://www.openstreetmap.org/?mlat=${dst[1]}&mlon=${dst[2]}#map=17/${dst[1]}/${dst[2]}" target="_blank" rel="noopener">降りるバス停の地図</a></p>
-        <p class="note">出発の「${esc(hubName)}」は、このコミバスでいちばん多くの便が通るバス停です。
-          時刻は ${esc(card.org)} の GTFS（${esc(card.from)}〜${esc(card.to)}）。${card.alt ? '<b>この時刻表は期間外のため、同じ曜日の時刻で代えています。</b>' : ''}乗る前に時刻表を確かめてください。</p>
-        <div class="acts">
-          <button id="rode" class="pull small" ${rode ? 'disabled' : ''}>${rode ? '図鑑に入っています' : '乗った！図鑑に入れる'}</button>
-          <button id="again" class="sub">もう 1 回引く</button>
-        </div>
-      </div>
-    </div>`;
-  bindFlip($('#result'));
-  $('#again').onclick = pull;
-  $('#rode').onclick = () => {
-    state.rode[card.k] = state.rode[card.k] || [];
-    state.rode[card.k].push({ date, dst: dst[0] });
-    save(); updateCount();
-    $('#rode').textContent = '図鑑に入れました'; $('#rode').disabled = true;
-    $('#result .card').classList.remove('gray');
-  };
-  $('#result').scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-// ---- カード
-function hash(s) { let h = 2166136261; for (const ch of s) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
-function palette(card) {
-  const h = hash(card.k) % 360;
-  return { h, bg1: `hsl(${h} 45% 96%)`, bg2: `hsl(${(h + 40) % 360} 50% 90%)`, ink: `hsl(${h} 45% 22%)`,
-    lines: [0, 50, 110, 200, 290].map((d) => `hsl(${(h + d) % 360} 62% 45%)`) };
-}
-
-// 模様: 代表の平日の便を、24 時間の時計の上に描く。
-// 角度＝時刻（真上が 0 時、時計回り）、中心からの距離＝便がいちばん多いバス停からの距離。
-// 出て戻る便が花びらになり、便の並びがそのまま路線ごとの模様になる。
-function artSVG(card, F, W, H) {
-  const P = palette(card);
-  let sv = services(F, '2026-11-04');
-  for (let i = 0; !F.trips.some((t) => sv.has(t[1])) && i < F.days.length; i++) {
-    const d = new Date(F.start + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + i); sv = services(F, d.toISOString().slice(0, 10));
-  }
-  const hub = F.stops.findIndex((s) => s[0] === card.hub);
-  const [hy, hx] = [F.stops[hub][1], F.stops[hub][2]];
-  const dist = F.stops.map((s) => Math.hypot(s[1] - hy, (s[2] - hx) * Math.cos(hy * Math.PI / 180)));
-  const md = Math.max(...dist.filter((x) => x < 1)) || 0.01;
-  const cx = W / 2, cy = H / 2, R = Math.min(W, H) / 2 - 8, r0 = R * 0.16;
-  const pt = (t, i) => {
-    const a = (t / 1440) * 2 * Math.PI - Math.PI / 2, r = r0 + (Math.min(dist[i], md) / md) * (R - r0);
-    return `${(cx + r * Math.cos(a)).toFixed(1)} ${(cy + r * Math.sin(a)).toFixed(1)}`;
-  };
-  let paths = '';
-  for (const tr of F.trips) {
-    if (!sv.has(tr[1])) continue;
-    const e = expand(tr);
-    let d = '';
-    e.s.forEach((s, i) => {
-      // 停留所のあいだは時刻を 3 つに割って曲線らしく
-      if (i) for (const f of [1 / 3, 2 / 3]) {
-        const t = e.dep[i - 1] + (e.arr[i] - e.dep[i - 1]) * f;
-        const dd = dist[e.s[i - 1]] + (dist[s] - dist[e.s[i - 1]]) * f;
-        const a = (t / 1440) * 2 * Math.PI - Math.PI / 2, r = r0 + (Math.min(dd, md) / md) * (R - r0);
-        d += `L${(cx + r * Math.cos(a)).toFixed(1)} ${(cy + r * Math.sin(a)).toFixed(1)}`;
-      }
-      d += `${i ? 'L' : 'M'}${pt(e.arr[i], s)}L${pt(e.dep[i], s)}`;
-    });
-    paths += `<path d="${d}" stroke="${P.lines[e.r % P.lines.length]}" />`;
-  }
-  const hours = [0, 6, 12, 18].map((h) => {
-    const a = (h / 24) * 2 * Math.PI - Math.PI / 2;
-    return `<line x1="${cx + r0 * Math.cos(a)}" y1="${cy + r0 * Math.sin(a)}" x2="${cx + R * Math.cos(a)}" y2="${cy + R * Math.sin(a)}" class="tick"/>`
-      + `<text x="${cx + (R + 1) * Math.cos(a)}" y="${cy + (R + 1) * Math.sin(a)}" class="hr" text-anchor="middle" dominant-baseline="middle">${h}</text>`;
-  }).join('');
-  return `<svg viewBox="0 0 ${W} ${H}" class="art" aria-hidden="true">
-    <circle cx="${cx}" cy="${cy}" r="${R}" class="ring"/><circle cx="${cx}" cy="${cy}" r="${r0}" class="ring"/>${hours}
-    <g fill="none" stroke-width="1.3" stroke-linejoin="round" stroke-linecap="round" opacity=".8" style="mix-blend-mode:multiply">${paths}</g></svg>`;
-}
-
-// 路線の形（注記なし）。路線ごとに色を分け、便がいちばん多いバス停に丸を付ける。
-// 背景に地理院タイル（淡色地図）を薄く敷く。線とタイルを合わせるため、投影はウェブメルカトル。
+// ---- 絵の窓（SVG）
 const TILE = 'https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png';
-const merc = (lat, lon) => {
-  const r = lat * Math.PI / 180;
-  return [(lon + 180) / 360, (1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2];
-};
-function shapeSVG(card, F, W, H) {
-  const P = palette(card);
-  const ls = F.shape || [];
-  const pts = ls.flatMap((l) => l[1]).map((p) => merc(p[0], p[1]));
-  if (!pts.length) return '';
+const merc = (lat, lon) => { const r = lat * Math.PI / 180; return [(lon + 180) / 360, (1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2]; };
+const LINE_COLOR = { SSR: '#8a4fd6', SR: '#e2483d', R: '#2c6fc0' };
+
+function mapSVG(card, F, spots, W = 300, H = 332) {
+  const rs = new Set(card.rs);
+  let lines = F.shape.filter((l) => rs.has(l[0])).map((l) => l[1]);
+  const trips = F.trips.filter((t) => rs.has(t[0]));
+  if (!lines.length) lines = [trips[0][3].map((i) => [F.stops[i][1], F.stops[i][2]])];
+  const stops = [...new Set(trips.flatMap((t) => t[3]))].map((i) => F.stops[i]);
+  const pts = lines.flat().concat(spots.map((s) => [s[2], s[3]])).map((p) => merc(p[0], p[1]));
   const x0 = Math.min(...pts.map((p) => p[0])), x1 = Math.max(...pts.map((p) => p[0]));
   const y0 = Math.min(...pts.map((p) => p[1])), y1 = Math.max(...pts.map((p) => p[1]));
-  const pad = 14, s = Math.min((W - 2 * pad) / (x1 - x0 || 1e-9), (H - 2 * pad) / (y1 - y0 || 1e-9));
-  // 画面の左上に当たる世界座標（0〜1）
-  const wx = (x0 + x1) / 2 - W / 2 / s, wy = (y0 + y1) / 2 - H / 2 / s;
-  const X = (p) => { const m = merc(p[0], p[1]); return ((m[0] - wx) * s).toFixed(1); };
-  const Y = (p) => { const m = merc(p[0], p[1]); return ((m[1] - wy) * s).toFixed(1); };
-  // タイル: 画面 2 倍の解像度に近いズーム（5〜16）
-  const z = Math.max(5, Math.min(16, Math.round(Math.log2(s * 2 / 256))));
-  const n = 2 ** z, ts = s / n;
+  // 絵は点の上に伸びるので、上の余白を広くとる
+  const padX = 30, padT = 50, padB = 22;
+  const s = Math.min((W - 2 * padX) / (x1 - x0 || 1e-9), (H - padT - padB) / (y1 - y0 || 1e-9), 256 * 2 ** 16);  // 短い路線で拡大しすぎない
+  const wx = (x0 + x1) / 2 - W / 2 / s, wy = y0 - (padT + (H - padT - padB - (y1 - y0) * s) / 2) / s;
+  const P = (lat, lon) => { const m = merc(lat, lon); return [(m[0] - wx) * s, (m[1] - wy) * s]; };
+  const z = Math.max(5, Math.min(16, Math.round(Math.log2(s * 2 / 256)))), n = 2 ** z, ts = s / n;
   let tiles = '';
-  for (let tx = Math.floor(wx * n); tx <= Math.floor((wx + W / s) * n); tx++) {
-    for (let ty = Math.floor(wy * n); ty <= Math.floor((wy + H / s) * n); ty++) {
-      if (ty < 0 || ty >= n) continue;
-      const url = TILE.replace('{z}', z).replace('{x}', ((tx % n) + n) % n).replace('{y}', ty);
-      tiles += `<image href="${url}" x="${((tx / n - wx) * s).toFixed(2)}" y="${((ty / n - wy) * s).toFixed(2)}" width="${(ts + 0.5).toFixed(2)}" height="${(ts + 0.5).toFixed(2)}" preserveAspectRatio="none"/>`;
+  for (let tx = Math.floor(wx * n); tx <= Math.floor((wx + W / s) * n); tx++)
+    for (let ty = Math.floor(wy * n); ty <= Math.floor((wy + H / s) * n); ty++)
+      tiles += `<image href="${TILE.replace('{z}', z).replace('{x}', tx).replace('{y}', ty)}" x="${((tx / n - wx) * s).toFixed(1)}" y="${((ty / n - wy) * s).toFixed(1)}" width="${(ts + .5).toFixed(1)}" height="${(ts + .5).toFixed(1)}"/>`;
+  const dOf = (l) => l.map((p, i) => { const [x, y] = P(p[0], p[1]); return `${i ? 'L' : 'M'}${x.toFixed(1)} ${y.toFixed(1)}`; }).join('');
+  const d = lines.map(dOf).join('');
+  const dots = stops.map((st) => { const [x, y] = P(st[1], st[2]); return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.2" fill="#fff" stroke="${INK}" stroke-width="1.3"/>`; }).join('');
+  // スポットの絵を、重ならない位置に置く（点の上 → 右上 → 左上 → 右 → 左 → 下）
+  const SZ = 44, BW = 50, BH = 56;
+  const placed = [];
+  const OFFS = [[0, -10], [22, -22], [-22, -22], [30, 6], [-30, 6], [0, 46], [36, -36], [-36, -36], [0, -44]];
+  const overlap = (a, b) => Math.max(0, Math.min(a[2], b[2]) - Math.max(a[0], b[0])) * Math.max(0, Math.min(a[3], b[3]) - Math.max(a[1], b[1]));
+  let art = '';
+  for (const sp of spots) {
+    const [x, y] = P(sp[2], sp[3]);
+    let best = null;
+    for (const [dx, dy] of OFFS) {
+      const ix = x + dx, iy = y + dy;  // iy は絵の足もと
+      const box = [ix - BW / 2, iy - BH + 12, ix + BW / 2, iy + 12];
+      const out = Math.max(0, -box[0]) + Math.max(0, box[2] - W) + Math.max(0, -box[1]) + Math.max(0, box[3] - H);
+      const cost = placed.reduce((a, b) => a + overlap(box, b), 0) + out * 60 + Math.hypot(dx, dy) * .5;
+      if (!best || cost < best.cost) best = { ix, iy, box, cost };
     }
+    placed.push(best.box);
+    const label = sp[1].length > 9 ? sp[1].slice(0, 8) + '…' : sp[1];
+    art += `<g>${Math.hypot(best.ix - x, best.iy - y) > 14 ? `<path d="M${x.toFixed(1)} ${y.toFixed(1)} L${best.ix.toFixed(1)} ${(best.iy - 4).toFixed(1)}" stroke="${INK}" stroke-width="1.2" stroke-dasharray="2 2"/>` : ''}
+      <circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="#ff8a00" stroke="${INK}" stroke-width="1.3"/>
+      <svg x="${(best.ix - SZ / 2).toFixed(1)}" y="${(best.iy - SZ * .9).toFixed(1)}" width="${SZ}" height="${SZ}" viewBox="0 0 64 64" overflow="visible">${ICONS[sp[0]]}</svg>
+      <text class="lbl" x="${best.ix.toFixed(1)}" y="${(best.iy + 9).toFixed(1)}" text-anchor="middle">${esc(label)}</text></g>`;
   }
-  const d = (l) => l.map((p, i) => `${i ? 'L' : 'M'}${X(p)} ${Y(p)}`).join('');
-  // 長い線から先に描き、短い線（枝）を上に重ねる
-  const order = ls.slice().sort((a, b) => b[1].length - a[1].length);
-  const halo = order.map((l) => `<path d="${d(l[1])}"/>`).join('');
-  const body = order.map((l) => `<path d="${d(l[1])}" stroke="${P.lines[l[0] % P.lines.length]}"/>`).join('');
-  const hub = F.stops.find((x) => x[0] === card.hub);
-  const hubDot = hub ? `<circle cx="${X([hub[1], hub[2]])}" cy="${Y([hub[1], hub[2]])}" r="5" fill="#fff" stroke="${P.ink}" stroke-width="2.4"/>` : '';
-  return `<svg viewBox="0 0 ${W} ${H}" class="shape" aria-hidden="true">
+  const busD = dOf(lines.slice().sort((a, b) => b.length - a.length)[0]);
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice">
     <g class="bgmap">${tiles}</g>
-    <g fill="none" stroke="#fff" stroke-opacity=".9" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round">${halo}</g>
-    <g fill="none" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">${body}</g>${hubDot}</svg>`;
+    <path d="${d}" fill="none" stroke="#fff" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="${d}" fill="none" stroke="${LINE_COLOR[card.rare]}" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"/>
+    ${dots}${art}
+    <path class="bus-path" d="${busD}" fill="none" stroke="none"/>
+    <g class="bus"><svg x="-15" y="-24" width="30" height="30" viewBox="0 0 64 64" overflow="visible"><g class="bus-flip">${ICONS.bus}</g></svg></g></svg>`;
 }
 
-function cardHTML(card, F, big, color) {
-  const P = palette(card);
-  const gray = !color && !state.rode[card.k];
-  return `
-  <div class="card r${card.rare} ${gray ? 'gray' : ''} ${big ? 'big' : ''}" data-k="${card.k}" tabindex="0" role="button" aria-label="${esc(card.name)} のカード（タップで裏返す）"
-       style="--bg1:${P.bg1};--bg2:${P.bg2};--ink:${P.ink}">
-    <div class="face front">
-      <div class="top"><span class="no">No.${String(card.no).padStart(3, '0')}</span><span class="st" title="${RARE[card.rare]}">${stars(card.rare)}</span></div>
-      <div class="art-box">${F ? shapeSVG(card, F, 260, 260) : ''}</div>
-      <div class="nm ${card.name.length > 13 ? 'long' : ''}">${esc(card.name)}</div>
-      <div class="meta">${esc(card.pref)}・${esc(card.agency || card.org)}</div>
-      <div class="sub-line">${card.nstops} のバス停・${card.nroutes} 路線・最長 ${card.len} km</div>
-      <div class="badges"><span class="fare">${card.fare} 円</span><span class="kei">${esc(card.kei)}</span></div>
+// バスを経路の上で走らせる（16 秒で 1 周）
+const runners = new Set();
+function runBus(root) {
+  const path = root.querySelector('.bus-path'), g = root.querySelector('.bus'), flip = root.querySelector('.bus-flip');
+  if (!path) return;
+  runners.add({ path, g, flip, L: path.getTotalLength(), off: rnd() });
+}
+const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+function tick(now) {
+  for (const r of runners) {
+    if (!r.g.isConnected) { runners.delete(r); continue; }
+    const t = still ? .15 : ((now / 16000) + r.off) % 1;
+    const p = r.path.getPointAtLength(t * r.L), q = r.path.getPointAtLength(Math.min(r.L, t * r.L + 2));
+    r.g.setAttribute('transform', `translate(${p.x.toFixed(1)} ${p.y.toFixed(1)})`);
+    r.flip.setAttribute('transform', q.x < p.x - 0.05 ? 'translate(64 0) scale(-1 1)' : '');
+  }
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+
+function cardHTML(card) {
+  const nmc = card.name.length > 16 ? 'l' : card.name.length > 12 ? 'm' : '';
+  return `<div class="card ${card.rare}">
+    <div class="inner">
+      <div class="head">
+        <div class="gem"><b>${card.rare}</b></div>
+        <div class="op"><small>No.${String(card.no).padStart(4, '0')}・${esc(card.pref)}</small><span>${esc(card.op)}</span></div>
+        <div class="stars">${STARS[card.rare]}</div>
+      </div>
+      <div class="frame">${card.loop ? '<div class="type">ぐるっと循環</div>' : ''}<div class="map"></div></div>
+      <div class="plate"><div class="nm ${nmc}">${esc(card.name)}</div><div class="sub">${esc(card.org)}・${card.nstops} のバス停をむすぶ</div></div>
+      <div class="stats">
+        <div class="st"><small>運賃</small><b>${card.fare}<i>円</i></b></div>
+        <div class="st"><small>バス停</small><b>${card.nstops}</b></div>
+        <div class="st"><small>長さ</small><b>${card.km}<i>km</i></b></div>
+      </div>
     </div>
-    <div class="face back">
-      <div class="top"><span class="no">No.${String(card.no).padStart(3, '0')}</span><span class="st">${RARE[card.rare]}</span></div>
-      <div class="nm-back">${esc(card.name)}</div>
-      <div class="shape-box">${F ? artSVG(card, F, 180, 180) : ''}<span class="cap">1 日の便（時計の形）</span></div>
-      <dl class="facts">
-        <dt>運賃</dt><dd>${card.fare} 円（均一）</dd>
-        <dt>バス停</dt><dd>${card.nstops} か所</dd>
-        <dt>路線</dt><dd>${card.nroutes} 本</dd>
-        <dt>いちばん長い線</dt><dd>${card.len} km</dd>
-        <dt>便がいちばん多いバス停</dt><dd>${esc(card.hub)}</dd>
-      </dl>
-      <p class="lic">表の形: ${card.shape ? '事業者の路線形状' : 'バス停を順につないだ線'}。◯は便がいちばん多いバス停。背景: 地理院タイル（淡色地図）。データ: ${esc(card.org)}（${esc(card.license || 'ライセンス表記なし')}）／GTFSデータリポジトリ</p>
-    </div>
+    <div class="holo"></div>
+    ${card.rare !== 'R' ? `<i class="spark" style="left:-4px;top:58px;animation-delay:.2s"></i><i class="spark" style="right:-3px;top:190px;animation-delay:1.1s"></i>
+      <i class="spark" style="left:22px;bottom:-4px;animation-delay:1.7s"></i><i class="spark" style="right:30px;top:-5px;animation-delay:.7s"></i>` : ''}
   </div>`;
 }
 
-function bindFlip(root) {
-  root.querySelectorAll('.card').forEach((el) => {
-    const f = () => el.classList.toggle('flip');
-    el.onclick = f;
-    el.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); f(); } };
-  });
+async function fillCard(el, card) {
+  const [F, S] = await Promise.all([getJSON(`data/f/${card.k}.json`), getJSON(`data/s/${card.k}.json`)]);
+  const m = el.querySelector('.map');
+  m.innerHTML = mapSVG(card, F, S[String(card.rs[0])] || []);
+  runBus(m);
 }
 
-// ---- 図鑑
-let keiFilter = '';
-function updateCount() {
-  const r = Object.keys(state.rode).length;
-  $('#zukan-count').textContent = r ? `${r}` : '';
-}
-async function renderZukan() {
-  const rode = Object.keys(state.rode).length, drawn = Object.keys(state.drawn).length;
-  $('#zukan-head').innerHTML = `<p class="prog"><b>${rode}</b> / ${CARDS.length} 枚（乗った）・引いただけ ${Math.max(drawn - rode, 0)} 枚</p>
-    <p class="hint">愛称の「系統」をそろえるのも楽しみ方の一つです。グレーのカードは、引いたけれどまだ乗っていないもの。</p>`;
-  const keis = [...new Set(CARDS.map((c) => c.kei))];
-  $('#kei-chips').innerHTML = ['', ...keis].map((k) => {
-    const all = CARDS.filter((c) => !k || c.kei === k), got = all.filter((c) => state.rode[c.k]).length;
-    return `<button class="chip ${k === keiFilter ? 'on' : ''}" data-k="${esc(k)}">${k || 'すべて'} <small>${got}/${all.length}</small></button>`;
-  }).join('');
-  $('#kei-chips').querySelectorAll('.chip').forEach((b) => { b.onclick = () => { keiFilter = b.dataset.k; renderZukan(); }; });
-  // 持っているカード（乗った → 引いただけ）を先に、残りは番号順
-  const has = (c) => (state.rode[c.k] ? 2 : state.drawn[c.k] ? 1 : 0);
-  const list = CARDS.filter((c) => !keiFilter || c.kei === keiFilter).sort((x, y) => has(y) - has(x) || x.no - y.no);
-  $('#grid').innerHTML = list.map((c) => {
-    if (state.drawn[c.k] || state.rode[c.k]) return `<div class="slot has" data-k="${c.k}"><div class="mini" id="m-${c.k}"></div></div>`;
-    return `<div class="slot"><span class="q">No.${String(c.no).padStart(3, '0')}</span><span class="qp">${esc(c.pref)}</span><span class="qs">${stars(c.rare)}</span></div>`;
-  }).join('');
-  const fit = () => $('#grid').querySelectorAll('.slot.has').forEach((s) => s.style.setProperty('--s', s.clientWidth / 300));
-  fit(); window.onresize = fit;
-  for (const c of list) {
-    if (!(state.drawn[c.k] || state.rode[c.k])) continue;
-    const F = await feed(c.k);
-    const el = document.getElementById('m-' + c.k);
-    if (el) el.innerHTML = cardHTML(c, F, false);
-  }
-  $('#grid').querySelectorAll('.slot.has').forEach((s) => {
-    s.onclick = async () => {
-      const c = BYKEY[s.dataset.k];
-      $('#modal-card').innerHTML = cardHTML(c, await feed(c.k), true);
-      bindFlip($('#modal-card'));
-      $('#modal').hidden = false;
-    };
+const BACK = `<div class="cardback"><div>${MACHINE.replace('class="machine"', 'class="machine" style="width:150px"')}</div></div>`;
+
+// ---- 画面
+function fit() {
+  document.querySelectorAll('.slot').forEach((s) => {
+    const k = s.clientWidth / 340;
+    s.style.height = `${476 * k}px`;
+    s.querySelectorAll('.scale').forEach((x) => x.style.setProperty('--s', k));
   });
 }
+window.addEventListener('resize', fit);
 
-function view(v) {
-  document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('on', t.dataset.v === v));
-  $('#v-gacha').hidden = v !== 'gacha';
-  $('#v-zukan').hidden = v !== 'zukan';
-  if (v === 'zukan') renderZukan();
+async function showResult(got) {
+  $('#v-top').hidden = true; $('#v-result').hidden = false;
+  const total = got.reduce((a, c) => a + c.fare, 0);
+  $('#total').innerHTML = `運賃の合計 <b>${total} 円</b> / ${BUDGET} 円`;
+  $('#row').innerHTML = got.map((c, i) => `<div class="slot" data-i="${i}">
+      <div class="flipper"><div class="face front"><div class="scale">${cardHTML(c)}</div></div><div class="face back"><div class="scale">${BACK}</div></div></div></div>`).join('');
+  fit();
+  await Promise.all(got.map((c, i) => fillCard($('#row').children[i], c)));
+  [...$('#row').children].forEach((s, i) => {
+    setTimeout(() => s.classList.add('shown'), still ? 0 : 250 + i * 380);
+    s.onclick = () => openModal(got[i]);
+  });
+  window.scrollTo({ top: 0 });
+}
+
+async function openModal(card) {
+  const k = Math.min(1, (window.innerWidth - 24) / 340);
+  const S = (await getJSON(`data/s/${card.k}.json`))[String(card.rs[0])] || [];
+  $('#modal-in').innerHTML = `<div class="big" style="--s:${k}"><div class="scale" style="--s:${k}">${cardHTML(card)}</div></div>
+    <div class="info">
+      <h3>沿線のスポット</h3>
+      ${S.length ? `<ul>${S.map((s) => `<li><svg viewBox="0 0 64 64">${ICONS[s[0]]}</svg><span>${esc(s[1])} <small>${CAT_LABEL[s[0]]}</small></span></li>`).join('')}</ul>` : '<p>バス停から 200m 以内に、載せられるスポットがありませんでした。</p>'}
+      <p class="lic">${esc(card.org)}「${esc(card.op)}」の GTFS（${esc(card.from)}〜${esc(card.to)}、${card.license_url ? `<a href="${esc(card.license_url)}">${esc(card.license)}</a>` : esc(card.license || 'ライセンス表記なし')}）${card.page ? `／<a href="${esc(card.page)}">配布ページ</a>` : ''}。
+        レア度は路線の長さで決めています（短いほどレア）。</p>
+    </div>
+    <button class="close" id="close">とじる</button>`;
+  $('#modal').hidden = false;
+  fillCard($('#modal-in'), card);
+  $('#close').onclick = () => { $('#modal').hidden = true; $('#modal-in').innerHTML = ''; };
+}
+$('#modal').onclick = (e) => { if (e.target.id === 'modal') $('#close').click(); };
+
+const wait = (ms) => new Promise((r) => setTimeout(r, still ? 0 : ms));
+async function spin() {
+  const got = draw();
+  if (!got.length) return;
+  // カードのデータを先に読み始めておく
+  got.forEach((c) => { getJSON(`data/f/${c.k}.json`); getJSON(`data/s/${c.k}.json`); });
+  $('#v-result').hidden = true; $('#v-top').hidden = false;
+  const box = $('#machine-box');
+  box.classList.remove('spin', 'out', 'open');
+  void box.offsetWidth;
+  $('#pull').disabled = true;
+  box.classList.add('spin'); await wait(1300);
+  const colors = ['#ff9eb0', '#7cc8f8', '#ffd75e', '#5fbf6f', '#9b6bb5'];
+  const c = pick(colors);
+  $('#drop').innerHTML = `<svg viewBox="-14 -14 28 28"><g class="lid"><path d="M-12 0 A12 12 0 0 1 12 0 Z" fill="${c}" stroke="${INK}" stroke-width="2"/></g>
+    <path d="M-12 0 A12 12 0 0 0 12 0 Z" fill="#fff" stroke="${INK}" stroke-width="2"/></svg>`;
+  box.classList.add('out'); await wait(800);
+  box.classList.add('open'); await wait(520);
+  $('#pull').disabled = false;
+  box.classList.remove('spin', 'out', 'open');
+  await showResult(got);
 }
 
 async function init() {
-  const idx = await fetch('data/index.json').then((r) => r.json());
-  CARDS = idx.cards; CARDS.forEach((c) => { BYKEY[c.k] = c; });
-  const prefs = [...new Set(CARDS.filter((c) => !c.yoyaku).map((c) => c.pref))];
-  $('#pref').innerHTML += prefs.map((p) => `<option>${esc(p)}</option>`).join('');
-  $('#credit-list').innerHTML = CARDS.map((c) => `<li>${esc(c.org)}「${esc(c.name)}」— ${c.license_url ? `<a href="${esc(c.license_url)}">${esc(c.license)}</a>` : esc(c.license || '表記なし')}（${esc(c.from)}〜${esc(c.to)}）${c.page ? ` <a href="${esc(c.page)}">配布ページ</a>` : ''}</li>`).join('');
-  $('#built').textContent = `データの作成日: ${idx.built}。均一運賃のコミュニティバス ${CARDS.length} 件を収録（予約が必要なもの ${CARDS.filter((c) => c.yoyaku).length} 件はガチャから外しています）。`;
-  document.querySelectorAll('.tab').forEach((t) => { t.onclick = () => view(t.dataset.v); });
-  $('#pull').onclick = pull;
-  $('#modal-close').onclick = () => { $('#modal').hidden = true; };
-  $('#modal').onclick = (e) => { if (e.target.id === 'modal') $('#modal').hidden = true; };
-  for (const k of ['budget', 'pref', 'when', 'rule']) if (params.get(k)) $('#' + k).value = params.get(k);
-  updateCount();
-  if (params.get('view')) view(params.get('view'));
-  if (params.get('auto')) pull();
+  $('#machine').innerHTML = MACHINE;
+  CARDS = (await getJSON('data/cards.json')).cards;
+  $('#count').textContent = `全国 ${CARDS.length} 枚のカード（${new Set(CARDS.map((c) => c.k)).size} の自治体のコミュニティバス）`;
+  $('#pull').onclick = spin;
+  $('#again').onclick = spin;
+  if (params.get('auto')) spin();
 }
 init();

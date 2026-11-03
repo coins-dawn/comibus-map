@@ -7,68 +7,38 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header>
-  <h1>コミバスガチャ</h1>
-  <nav>
-    <button id="tab-gacha" class="tab on" data-v="gacha">ガチャ</button>
-    <button id="tab-zukan" class="tab" data-v="zukan">図鑑 <span id="zukan-count"></span></button>
-  </nav>
-</header>
-
 <main>
-  <section id="v-gacha" class="view">
-    <p class="lead">全国のコミュニティバスから、<b>きょう行って、帰ってこられる</b>バス停を 1 つ引きます。</p>
-    <div class="opts">
-      <label>予算（往復）
-        <select id="budget">
-          <option value="200">200 円まで</option>
-          <option value="400" selected>400 円まで</option>
-          <option value="600">600 円まで</option>
-        </select>
-      </label>
-      <label>どこで
-        <select id="pref"><option value="">全国</option></select>
-      </label>
-      <label>出発
-        <select id="when">
-          <option value="now">いまから</option>
-          <option value="540">朝 9 時から</option>
-          <option value="780">昼 13 時から</option>
-        </select>
-      </label>
-      <label>しばり
-        <select id="rule">
-          <option value="free">ふつう</option>
-          <option value="2h">2 時間で帰る</option>
-          <option value="end">終点まで行く</option>
-        </select>
-      </label>
+  <section id="v-top" class="view">
+    <h1 class="logo"><span>コミバス</span>ガチャ</h1>
+    <p class="lead">全国のコミュニティバスのカードを、<b>運賃の合計 500 円まで</b>で 3 枚引きます。</p>
+    <div class="machine-box" id="machine-box">
+      <div id="machine"></div>
+      <div class="drop" id="drop"></div>
+      <div class="flash" id="flash"></div>
     </div>
     <button id="pull" class="pull">ガチャを引く</button>
-    <div id="result"></div>
+    <p class="count" id="count"></p>
   </section>
 
-  <section id="v-zukan" class="view" hidden>
-    <div id="zukan-head"></div>
-    <div id="kei-chips" class="chips"></div>
-    <div id="grid" class="grid"></div>
+  <section id="v-result" class="view" hidden>
+    <h2 class="res-title">当たったカード</h2>
+    <p class="total" id="total"></p>
+    <div class="row" id="row"></div>
+    <p class="hint">カードをタップすると大きく見られます</p>
+    <button id="again" class="pull">もう 1 回まわす</button>
   </section>
 </main>
 
 <div id="modal" class="modal" hidden>
-  <div class="modal-in">
-    <div id="modal-card"></div>
-    <p class="hint">カードをタップすると裏返ります</p>
-    <button id="modal-close" class="sub">とじる</button>
-  </div>
+  <div class="modal-in" id="modal-in"></div>
 </div>
 
 <footer>
-  <p>時刻・停留所・運賃は、<a href="https://gtfs-data.jp/">GTFSデータリポジトリ</a>に登録された各自治体の GTFS-JP を加工して作成しています。
-    事業者ごとのライセンスはカードの裏面と下の一覧に表示しています。カードの背景地図は<a href="https://maps.gsi.go.jp/development/ichiran.html">地理院タイル</a>（淡色地図）です。時刻は変わることがあります。乗る前に各自治体の時刻表を確かめてください。</p>
-  <details id="credits"><summary>使っているデータの一覧</summary><ul id="credit-list"></ul></details>
-  <p id="built"></p>
+  <p>経路・バス停・運賃: <a href="https://gtfs-data.jp/">GTFSデータリポジトリ</a>に登録された各自治体の GTFS-JP を加工（事業者ごとのライセンスはカードを開くと表示）。
+    スポット: © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>（ODbL）。背景地図: <a href="https://maps.gsi.go.jp/development/ichiran.html">地理院タイル</a>（淡色地図）。イラストは自作。
+    時刻や運賃は変わることがあります。乗る前に各自治体の案内を確かめてください。</p>
 </footer>
+<script src="icons.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
