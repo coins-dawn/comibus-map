@@ -48,7 +48,7 @@ function mapSVG(card, F, spots, W = BOX_W, H = BOX_H - BOX_T, acc = null) {
   const d = lines.map(dOf).join('');
   const dots = stops.map((st) => { const [x, y] = P(st[1], st[2]); return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.2" fill="#fff" stroke="${INK}" stroke-width="1.3"/>`; }).join('');
   // スポットの絵を、重ならない位置に置く（点の上 → 右上 → 左上 → 右 → 左 → 下）
-  const SZ = 44, BW = 50, BH = 56;
+  const SZ = 32;  // 絵の大きさ（重ならないよう小さめ。2026-11-03）
   const placed = [];
   const OFFS = [[0, -10], [22, -22], [-22, -22], [30, 6], [-30, 6], [0, 46], [36, -36], [-36, -36], [0, -44]];
   const overlap = (a, b) => Math.max(0, Math.min(a[2], b[2]) - Math.max(a[0], b[0])) * Math.max(0, Math.min(a[3], b[3]) - Math.max(a[1], b[1]));
@@ -69,22 +69,26 @@ function mapSVG(card, F, spots, W = BOX_W, H = BOX_H - BOX_T, acc = null) {
     spots = spots.filter((sp) => !(sp[0] === 'station' && (sp[1] === walk.st || Math.hypot(...P(sp[2], sp[3]).map((v, i) => v - [sx, sy][i])) < 30)));
   }
   let art = '';
+  // 置く場所の候補: 点のまわり 12 方向 × 5 段の距離（近い順）。絵と名前を合わせた範囲がほかと重ならない場所を選ぶ
+  const CAND = [[0, -4]];
+  for (const r of [24, 40, 56, 74, 94]) for (let k = 0; k < 12; k++) { const t = k * Math.PI / 6 - Math.PI / 2; CAND.push([Math.round(Math.cos(t) * r), Math.round(Math.sin(t) * r)]); }
   for (const sp of spots) {
     const [x, y] = P(sp[2], sp[3]);
+    const lab = sp[1].length > 9 ? sp[1].slice(0, 8) + '…' : sp[1], hw = Math.max(SZ / 2, lab.length * 4.6 + 2);
     let best = null;
-    for (const [dx, dy] of OFFS) {
+    for (const [dx, dy] of CAND) {
       const ix = x + dx, iy = y + dy;  // iy は絵の足もと
-      const box = [ix - BW / 2, iy - BH + 12, ix + BW / 2, iy + 12];
+      const box = [ix - hw, iy - SZ * .9, ix + hw, iy + 11];
       const out = Math.max(0, -box[0]) + Math.max(0, box[2] - W) + Math.max(0, -box[1]) + Math.max(0, box[3] - H);
-      const cost = placed.reduce((a, b) => a + overlap(box, b), 0) + out * 60 + Math.hypot(dx, dy) * .5;
+      const cost = placed.reduce((a, b) => a + overlap(box, b), 0) * 50 + out * 200 + Math.hypot(dx, dy);
       if (!best || cost < best.cost) best = { ix, iy, box, cost };
     }
     placed.push(best.box);
-    const label = sp[1].length > 9 ? sp[1].slice(0, 8) + '…' : sp[1];
-    art += `<g>${Math.hypot(best.ix - x, best.iy - y) > 14 ? `<path d="M${x.toFixed(1)} ${y.toFixed(1)} L${best.ix.toFixed(1)} ${(best.iy - 4).toFixed(1)}" stroke="${INK}" stroke-width="1.2" stroke-dasharray="2 2"/>` : ''}
+    const label = lab;
+    art += `<g>${Math.hypot(best.ix - x, best.iy - y) > 10 ? `<path d="M${x.toFixed(1)} ${y.toFixed(1)} L${best.ix.toFixed(1)} ${(best.iy - 3).toFixed(1)}" stroke="${INK}" stroke-width="1.2" stroke-dasharray="2 2"/>` : ''}
       <circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="1.8" fill="${INK}"/>
       <svg x="${(best.ix - SZ / 2).toFixed(1)}" y="${(best.iy - SZ * .9).toFixed(1)}" width="${SZ}" height="${SZ}" viewBox="0 0 64 64" overflow="visible">${spotIcon(sp)}</svg>
-      <text class="lbl" x="${best.ix.toFixed(1)}" y="${(best.iy + 9).toFixed(1)}" text-anchor="middle">${esc(label)}</text></g>`;
+      <text class="lbl" x="${best.ix.toFixed(1)}" y="${(best.iy + 8).toFixed(1)}" text-anchor="middle">${esc(label)}</text></g>`;
   }
   const busD = dOf(lines.slice().sort((a, b) => b.length - a.length)[0]);
   return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice">
