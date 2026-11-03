@@ -253,6 +253,7 @@ function cardHTML(card, F, big, color) {
     </div>
     <div class="face back">
       <div class="top"><span class="no">No.${String(card.no).padStart(3, '0')}</span><span class="st">${RARE[card.rare]}</span></div>
+      <div class="nm-back">${esc(card.name)}</div>
       <div class="shape-box">${shapeSVG(card, 280, 200, P.ink)}</div>
       <dl class="facts">
         <dt>運賃</dt><dd>${card.fare} 円（均一）</dd>
