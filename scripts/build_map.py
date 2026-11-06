@@ -218,6 +218,11 @@ def main():
     # スポットごとの絵（自治体ごとの代表のスポットのうち、名前や中身から目印が決まるもの）
     specs = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'spotart_specs.json'), encoding='utf-8'))
     art = {}
+    # 駅は路線・事業者・駅名から規則で決めた絵（scripts/station_art.py の出力）。下の仕様・調査があればそちらが優先
+    sa = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'station_art.json')
+    if os.path.exists(sa):
+        for k, v in json.load(open(sa, encoding='utf-8')).items():
+            art[k] = v['spec'][:3]
     # 仕様のキーは「名前|緯度|経度」（2026-11-06 まではスポットの番号で、バス停が変わると並びがずれて絵が付き替わった）
     for k, v in specs.items():
         if k != '_' and v:

@@ -108,11 +108,25 @@ const SA = (() => {
       if (k === 'site') return `<path d="M0 57 Q19 47 38 57 Z" fill="#a5dc8f" ${S(1.8)}/><rect x="11" y="32" width="16" height="20" rx="1" fill="#f2e3c6" ${S(1.8)}/><path d="M14 38 H24 M14 42 H24 M14 46 H22" stroke="${INK}" stroke-width="1.4"/>`;
       return `<path d="M0 57 L14 26 L22 38 L28 30 L38 57 Z" fill="#8fbf7a" ${S()}/><path d="M11 33 L14 26 L17 33 Q14 31 11 33 Z" fill="#fff" ${S(1.2)}/>`;
     },
-    // 駅: c=電車の色 sl=蒸気機関車 one=1 両のローカル線
-    station: (o) => o.sl ? M.sl(19, 50, 1.25) + ground(0, 38, 57)
+    // 駅: c=電車の色 band=帯の色 sl=蒸気機関車 k=shin（新幹線の顔）/ one（1 両の気動車）/ tram（路面電車） end=終着駅（車止め）
+    station: (o) => (o.sl ? M.sl(19, 50, 1.25) + ground(0, 38, 57)
+      : o.k === 'shin' ? `<path d="M0 57 H38" stroke="${INK}" stroke-width="2"/>
+      <path d="M2 54 V40 Q2 34 10 33 Q24 31 36 46 V54 Z" fill="${o.c || '#fff'}" ${S(2.2)}/><path d="M9 36.5 Q16 35 22 37 L19 41 H8 Z" fill="#3d4a5c" ${S(1.2)}/>
+      <path d="M2 47 H36" stroke="${o.band || '#2c6fc0'}" stroke-width="2.6"/><path d="M2 50.5 H36" stroke="${o.band2 || o.band || '#2c6fc0'}" stroke-width="1"/>
+      <circle cx="31" cy="44" r="1.6" fill="#ffd75e" ${S(.8)}/><circle cx="9" cy="54.5" r="2.4" fill="#5c6878" ${S(1.4)}/><circle cx="27" cy="54.5" r="2.4" fill="#5c6878" ${S(1.4)}/>`
+      : o.k === 'one' ? `<path d="M0 57 H38" stroke="${INK}" stroke-width="2"/><rect x="6" y="32" width="26" height="22" rx="5" fill="${o.c || '#f4ead2'}" ${S(2.2)}/>
+      <rect x="9.5" y="35.5" width="8" height="7" rx="1.5" fill="#bfe6ff" ${S(1.3)}/><rect x="20.5" y="35.5" width="8" height="7" rx="1.5" fill="#bfe6ff" ${S(1.3)}/>
+      <path d="M6 46 H32" stroke="${o.band || '#e2483d'}" stroke-width="2.6"/><circle cx="10" cy="49.5" r="1.4" fill="#ffd75e" ${S(.7)}/><circle cx="28" cy="49.5" r="1.4" fill="#ffd75e" ${S(.7)}/>
+      <circle cx="12" cy="54.5" r="2.4" fill="#5c6878" ${S(1.4)}/><circle cx="26" cy="54.5" r="2.4" fill="#5c6878" ${S(1.4)}/>`
+      : o.k === 'tram' ? `<path d="M0 57 H38" stroke="${INK}" stroke-width="2"/><path d="M19 32 L14 26 H24 Z M19 32 V26" fill="none" stroke="${INK}" stroke-width="1.4"/><path d="M8 26 H30" stroke="${INK}" stroke-width="1.4"/>
+      <rect x="5" y="32" width="28" height="21" rx="3" fill="${o.c || '#f2c35a'}" ${S(2.2)}/><rect x="8" y="35" width="6" height="7" rx="1" fill="#bfe6ff" ${S(1.2)}/><rect x="16" y="35" width="6" height="7" rx="1" fill="#bfe6ff" ${S(1.2)}/><rect x="24" y="35" width="6" height="7" rx="1" fill="#bfe6ff" ${S(1.2)}/>
+      <path d="M5 46 H33" stroke="${o.band || '#fff'}" stroke-width="2.4"/><circle cx="11" cy="54.5" r="2.2" fill="#5c6878" ${S(1.3)}/><circle cx="27" cy="54.5" r="2.2" fill="#5c6878" ${S(1.3)}/>`
       : `<path d="M0 57 H38" stroke="${INK}" stroke-width="2"/><rect x="2" y="30" width="34" height="24" rx="6" fill="${o.c || '#5fbf6f'}" ${S(2.2)}/>
       <rect x="6" y="34" width="9" height="8" rx="1.5" fill="#bfe6ff" ${S(1.4)}/><rect x="17" y="34" width="9" height="8" rx="1.5" fill="#bfe6ff" ${S(1.4)}/><rect x="28" y="34" width="5" height="8" rx="1.5" fill="#bfe6ff" ${S(1.4)}/>
-      <path d="M2 46 H36" stroke="${o.band || '#fff'}" stroke-width="2.4"/><circle cx="8" cy="54.5" r="2.6" fill="#5c6878" ${S(1.4)}/><circle cx="30" cy="54.5" r="2.6" fill="#5c6878" ${S(1.4)}/>`,
+      <path d="M2 46 H36" stroke="${o.band || '#fff'}" stroke-width="2.4"/><circle cx="8" cy="54.5" r="2.6" fill="#5c6878" ${S(1.4)}/><circle cx="30" cy="54.5" r="2.6" fill="#5c6878" ${S(1.4)}/>`)
+      // 終着駅: 線路の先の車止め（赤白の板）
+      + (o.end ? `<path d="M1.5 57 V49 M7.5 57 V49" stroke="${INK}" stroke-width="1.8"/>
+      <rect x="-.5" y="44" width="10" height="5.5" fill="#fff" ${S(1.3)}/><path d="M1.5 44 L-.5 47 M5 44 L1 49.5 M8.5 44 L4.5 49.5 M9.5 47.5 L8 49.5" stroke="#e2483d" stroke-width="1.8"/>` : ''),
     // 船: k=ferry（定期船）/ boat（渡し・小舟）
     ferry: (o) => (o.k === 'boat' ? `<path d="M2 48 H36 Q33 56 26 56 H11 Q4 56 2 48 Z" fill="#c98b4f" ${S()}/><path d="M24 48 L30 22" stroke="${INK}" stroke-width="2"/>`
       : `<path d="M1 44 H37 L33 55 H6 Z" fill="${o.c || '#fff'}" ${S()}/><path d="M3 49 H35" stroke="${o.band || '#2c6fc0'}" stroke-width="2.4"/>
