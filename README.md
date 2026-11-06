@@ -31,5 +31,13 @@ python3 scripts/shot.py                        # 画面キャプチャ（Playwri
 | スポット | © OpenStreetMap contributors | ODbL |
 | カードの背景地図 | 国土地理院 地理院タイル（淡色地図）。画面から直接読み込む | 出典の表示で利用可（国土地理院コンテンツ利用規約） |
 | バスの時刻・停留所・運賃・路線形状（GTFS-JP） | GTFS データリポジトリ（gtfs-data.jp）に登録の各自治体 | フィードごと（カードを開くと表示） |
+| 駅の位置・乗降客数 | 国土数値情報（駅別乗降客数データ）を加工して作成 | 国土数値情報利用約款 |
+| 都道府県の形 | Natural Earth | パブリックドメイン |
+| 推定した経路の形・駅からの道 | © OpenStreetMap contributors（OSRM で経路探索） | ODbL |
 
-- `web/data/` は集計結果で、git では管理しない。
+- `web/data/` は集計結果。GitHub Pages でそのまま配るため git に入れている。
+- 静的データの取得日: 2026-10-16。
+
+## 配信
+
+`.github/workflows/pages.yml` が main への push で `web/` を GitHub Pages に出す（Settings → Pages → Source を「GitHub Actions」にしておく）。
