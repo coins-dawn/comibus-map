@@ -199,8 +199,9 @@ def main():
     research = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'spot_research.json'), encoding='utf-8'))
     card_cat, card_sea = collections.defaultdict(set), collections.defaultdict(set)
     for si, sp in enumerate(spots):
-        rk = research.get(f"{sp[1]}|{sp[2]}|{sp[3]}") or {}
-        se = spot_season(sp, specs0.get(str(si)) or rk.get('spec'), rk.get('season'))
+        key = f"{sp[1]}|{sp[2]}|{sp[3]}"
+        rk = research.get(key) or {}
+        se = spot_season(sp, specs0.get(key) or rk.get('spec'), rk.get('season'))
         sp.append(se)
         for ci in sp[4]:
             if sp[0] in PURPOSE:
@@ -217,10 +218,10 @@ def main():
     # スポットごとの絵（自治体ごとの代表のスポットのうち、名前や中身から目印が決まるもの）
     specs = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'spotart_specs.json'), encoding='utf-8'))
     art = {}
+    # 仕様のキーは「名前|緯度|経度」（2026-11-06 まではスポットの番号で、バス停が変わると並びがずれて絵が付き替わった）
     for k, v in specs.items():
-        if k != '_' and v and int(k) < len(spots):
-            sp = spots[int(k)]
-            art[f"{sp[1]}|{sp[2]}|{sp[3]}"] = v[:3]
+        if k != '_' and v:
+            art[k] = v[:3]
     for k, v in research.items():
         if k != '_' and v.get('spec'):
             art[k] = v['spec'][:3]

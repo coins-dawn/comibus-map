@@ -179,16 +179,22 @@ def main():
         if not st:
             skipped['時刻がない'] += 1
             continue
-        # 停留所は名前でまとめる（のりばの違いを同じ停留所とみなす）
-        sname, sidx, spos = [], {}, collections.defaultdict(list)
+        # 停留所は名前でまとめる（のりばの違いを同じ停留所とみなす）。
+        # ただし同じ名前でも 500m より離れていれば別の停留所にする（鹿児島市「Ａコープ前方面」は 5 か所・13km 離れていて、
+        # まとめると平均の何もない場所に点ができ、そこへ線が飛んでいた。2026-11-06）
+        sname, spos, stop2 = [], collections.defaultdict(list), {}
+        byname = collections.defaultdict(list)  # 名前 → その名前の停留所の番号
         for sid, r in stops.items():
             n = r.get('stop_name', '').strip() or sid
-            if n not in sidx:
-                sidx[n] = len(sname)
+            p = (float(r['stop_lat']), float(r['stop_lon']))
+            hit = next((i for i in byname[n] if any(dist(p, q) <= 500 for q in spos[i])), None)
+            if hit is None:
+                hit = len(sname)
                 sname.append(n)
-            spos[sidx[n]].append((float(r['stop_lat']), float(r['stop_lon'])))
+                byname[n].append(hit)
+            spos[hit].append(p)
+            stop2[sid] = hit
         sxy = [[round(sum(p[0] for p in spos[i]) / len(spos[i]), 5), round(sum(p[1] for p in spos[i]) / len(spos[i]), 5)] for i in range(len(sname))]
-        stop2 = {sid: sidx[(r.get('stop_name', '').strip() or sid)] for sid, r in stops.items()}
         rlist = sorted(routes)
         ridx = {r: i for i, r in enumerate(rlist)}
         sids = sorted({trips[t]['service_id'] for t in st})
