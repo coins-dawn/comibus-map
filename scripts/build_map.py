@@ -239,6 +239,15 @@ def main():
     for k, v in research.items():
         if k != '_' and v.get('spec'):
             art[k] = v['spec'][:3]
+    # 名前から直感的に連想できる目印（scripts/name_marks.py の出力。かわうそ学習館 → かわうそ）。名産品の札より優先（2026-11-07 ユーザー指示）
+    nfn = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'name_art.json')
+    if os.path.exists(nfn):
+        nn = 0
+        for k, v in json.load(open(nfn, encoding='utf-8')).items():
+            if k not in art:
+                art[k] = v['spec'][:3]
+                nn += 1
+        print('名前から目印', nn)
     # 専用の絵のないスポットには、市町村の特産品を右上の札に添える（scripts/local_specialty.py の出力。2026-11-07 ユーザー指示）
     sfn = 'work/spotart/specialty.json'
     if os.path.exists(sfn):

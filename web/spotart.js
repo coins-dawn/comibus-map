@@ -293,6 +293,14 @@ const SA = (() => {
     wisteria: (x, y) => `<path d="M${x - 11} ${y - 20} H${x + 11}" stroke="#8a5a33" stroke-width="2"/>` + [-8, -3, 2, 7].map((d, i) => `<path d="M${x + d} ${y - 20} Q${x + d - 2} ${y - 12 + i % 2 * 2} ${x + d} ${y - 6 + i % 2 * 2}" stroke="#9b6bb5" stroke-width="3.6" stroke-linecap="round" fill="none" stroke-dasharray="1.6 1"/>`).join(''),
     cat: (x, y) => `<ellipse cx="${x}" cy="${y - 5}" rx="6.5" ry="4.6" fill="#f2c35a" ${S(1.3)}/><circle cx="${x + 5}" cy="${y - 10}" r="4" fill="#f2c35a" ${S(1.2)}/><path d="M${x + 2.5} ${y - 13} l.5 -3.5 2 2.5 M${x + 7.5} ${y - 13} l-.5 -3.5 -2 2.5" fill="#f2c35a" ${S(.9)}/><path d="M${x - 6} ${y - 6} q-5 -2 -4 -7" stroke="${INK}" stroke-width="1.6" fill="none"/><path d="M${x + 3.5} ${y - 10} q.7 .7 1.4 0 M${x + 5.6} ${y - 10} q.7 .7 1.4 0" stroke="${INK}" stroke-width=".9" fill="none"/>`,
     fan: (x, y) => `<path d="M${x} ${y - 2} L${x - 11} ${y - 13} Q${x} ${y - 22} ${x + 11} ${y - 13} Z" fill="#e2483d" ${S(1.3)}/><path d="M${x} ${y - 2} L${x - 5} ${y - 17} M${x} ${y - 2} L${x} ${y - 18} M${x} ${y - 2} L${x + 5} ${y - 17}" stroke="#f2c35a" stroke-width="1"/><circle cx="${x}" cy="${y - 12}" r="2.6" fill="#fff"/>`,
+    // かわうそ（立ち上がって前足をそろえる。2026-11-07 追加）
+    otter: (x, y) => `<path d="M${x + 4} ${y - 2} Q${x + 12} ${y - 1} ${x + 12} ${y - 6}" stroke="#8a5a36" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+      <path d="M${x - 5} ${y} Q${x - 7} ${y - 9} ${x - 4} ${y - 14} H${x + 4} Q${x + 7} ${y - 9} ${x + 5} ${y} Z" fill="#a9734a" ${S(1.3)}/>
+      <ellipse cx="${x}" cy="${y - 6}" rx="3" ry="4.5" fill="#f2dfc4"/>
+      <circle cx="${x}" cy="${y - 17}" r="5.6" fill="#a9734a" ${S(1.3)}/><circle cx="${x - 4.6}" cy="${y - 21}" r="1.6" fill="#a9734a" ${S(1)}/><circle cx="${x + 4.6}" cy="${y - 21}" r="1.6" fill="#a9734a" ${S(1)}/>
+      <ellipse cx="${x}" cy="${y - 15}" rx="3.4" ry="2.4" fill="#f2dfc4"/><circle cx="${x - 2.2}" cy="${y - 18.3}" r=".9" fill="${INK}"/><circle cx="${x + 2.2}" cy="${y - 18.3}" r=".9" fill="${INK}"/>
+      <ellipse cx="${x}" cy="${y - 16.2}" rx="1.1" ry=".8" fill="${INK}"/><path d="M${x - 2.5} ${y - 15} l-3 -.6 M${x - 2.5} ${y - 14} l-3 .5 M${x + 2.5} ${y - 15} l3 -.6 M${x + 2.5} ${y - 14} l3 .5" stroke="${INK}" stroke-width=".5"/>
+      <path d="M${x - 2.5} ${y - 10} q2.5 1.5 5 0" stroke="#8a5a36" stroke-width="1.6" fill="none" stroke-linecap="round"/>`,
     // 土地の特産品（2026-11-07 追加）
     scallop: (x, y) => `<path d="M${x} ${y - 1} L${x - 8} ${y - 9} Q${x - 7} ${y - 16} ${x} ${y - 16} Q${x + 7} ${y - 16} ${x + 8} ${y - 9} Z" fill="#f4c7a1" ${S(1.3)}/>
       <path d="M${x} ${y - 1} L${x - 5} ${y - 14} M${x} ${y - 1} L${x} ${y - 16} M${x} ${y - 1} L${x + 5} ${y - 14}" stroke="#c98b4f" stroke-width="1"/><path d="M${x - 3} ${y - 1} H${x + 3} L${x + 2} ${y + 1} H${x - 2} Z" fill="#f4c7a1" ${S(1)}/>`,
