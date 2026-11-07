@@ -44,6 +44,9 @@ body.mappage { overflow: hidden; background: #a9dcf5; }
 .about-link:hover { text-decoration: underline; }
 
 /* このサービスについて */
+/* ガチャの画面: 地図と同じヘッダー（白・上に固定）の下から始める。2026-11-07 */
+body.gachapage { padding-top: 52px; }
+body.gachapage .mbar { color: #111; font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif; }
 body.aboutpage { margin: 0; background: #fff; color: #222; font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif; }
 .about { max-width: 760px; margin: 0 auto; padding: 72px 18px 40px; line-height: 1.8; font-size: 15px; }
 .about h1 { font-size: 22px; margin: 8px 0 12px; }

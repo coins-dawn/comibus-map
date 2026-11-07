@@ -10,7 +10,6 @@ a { color: inherit; }
 .logo { margin: 22px 0 4px; font-size: 34px; font-weight: 900; letter-spacing: .06em; color: #fff3c4;
   text-shadow: 0 3px 0 #a8741a, 0 0 18px rgba(255, 210, 110, .45); }
 .logo span { color: #ff9eb0; text-shadow: 0 3px 0 #a81f4f, 0 0 18px rgba(255, 150, 190, .45); }
-.tomap { align-self: flex-start; margin: 10px 0 0 4px; font-size: 13px; font-weight: 700; color: #e8e4f5; text-decoration: none; }
 .logo small { display: block; font-size: 18px; letter-spacing: .1em; color: #ffd75e; text-align: center; }
 .lead { margin: 4px 0 10px; text-align: center; font-size: 14px; color: #e8e4f5; line-height: 1.6; }
 .lead b { color: #ffd75e; }
