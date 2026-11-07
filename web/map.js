@@ -1,6 +1,6 @@
 'use strict';
 // 全国コミバスまっぷ: 日本地図（引いた状態は都道府県の形だけ、広げると地理院タイル）の上に、全国のコミュニティバスの路線と沿線スポットのイラストを置く。
-// 引いた状態: 自治体ごとの代表のスポットだけ。広げる: 路線（Z_ROUTE〜）、すべてのスポット（Z_ALL〜）。地図の上ではバスを走らせない（カードの中だけ。2026-11-03 ユーザー指示）。
+// 引いた状態: 自治体ごとの代表のスポットだけ。広げる: 路線（Z_ROUTE〜）、すべてのスポット（Z_ALL〜）。広げると、時刻表から計算したいまの位置にバスを走らせる（bus.js。2026-11-07 ユーザー指示。それまでは地図の上では走らせていなかった）。
 // 路線やイラストをタップすると、その路線のカードを開く（card.js の openModal）。
 const Z_ROUTE = 8.5, Z_ALL = 10.5;
 const CAT_ORDER = ['castle', 'zoo', 'sky', 'ferry', 'onsen', 'museum', 'view', 'michi', 'beach', 'jinja', 'tera', 'station', 'library', 'park'];
@@ -154,11 +154,12 @@ async function init() {
     const at = params.get('at');  // ?at=ズーム/緯度/経度（キャプチャ用）
     if (at) { const [z, la, lo] = at.split('/').map(Number); map.jumpTo({ zoom: z, center: [lo, la] }); }
     showPrefs(); refreshWaves(); refreshSpots();
+    if (typeof initBuses === 'function') initBuses();
     // 出典の欄は最初は閉じておく（スマホで地図の下を隠すため）。ⓘ で開く
     document.querySelector('.maplibregl-ctrl-attrib')?.classList.remove('maplibregl-compact-show');
   });
   map.on('moveend', () => { showPrefs(); refreshWaves(); refreshSpots(); });
-  map.on('click', 'routes', (e) => openModal(CARDS[e.features[0].properties.c]));
+  map.on('click', 'routes', (e) => map.getLayer('buses') && map.queryRenderedFeatures(e.point, { layers: ['buses'] }).length || openModal(CARDS[e.features[0].properties.c]));
   map.on('mouseenter', 'routes', () => { map.getCanvas().style.cursor = 'pointer'; });
   map.on('mouseleave', 'routes', () => { map.getCanvas().style.cursor = ''; });
 }
