@@ -14,6 +14,9 @@ if (params.get('seed')) {
 const pick = (arr) => arr[Math.floor(rnd() * arr.length)];
 
 const cache = {};
+// 特産品の札があるスポットは「〇〇市の名産: りんご」を添える（スポットそのものの特徴ではないことがわかるように）
+const tokNote = (s) => { const a = typeof SPOTART !== 'undefined' && SPOTART[`${s[1]}|${s[2]}|${s[3]}`]; const o = a && a[1];
+  return o && o.tok ? `<small class="tok">${esc(o.town || '')}の名産: ${esc(o.tokw || '')}</small>` : ''; };
 const getJSON = (u) => (cache[u] = cache[u] || fetch(u).then((r) => r.json()));
 
 // ---- 絵の窓（SVG）
@@ -201,7 +204,7 @@ async function openModal(card) {
         ${st.span ? `<dt>始発〜終発</dt><dd>${st.span}（出発の時刻）</dd>` : ''}
         ${card.loop ? '<dt>形</dt><dd>始点と終点が同じ便があります（循環）</dd>' : ''}
       </dl>
-      ${S.length ? `<h3>沿線のスポット</h3><ul>${S.map((s) => `<li><svg viewBox="0 0 64 64">${spotIcon(s)}</svg><span>${esc(s[1])} <small>${CAT_LABEL[s[0]]}</small></span></li>`).join('')}</ul>` : ''}
+      ${S.length ? `<h3>沿線のスポット</h3><ul>${S.map((s) => `<li><svg viewBox="0 0 64 64">${spotIcon(s)}</svg><span>${esc(s[1])} <small>${CAT_LABEL[s[0]]}</small>${tokNote(s)}</span></li>`).join('')}</ul>` : ''}
       <p class="lic">${esc(card.org)}「${esc(card.op)}」の GTFS（${esc(card.from)}〜${esc(card.to)}、${card.license_url ? `<a href="${esc(card.license_url)}">${esc(card.license)}</a>` : esc(card.license || 'ライセンス表記なし')}）${card.page ? `／<a href="${esc(card.page)}">配布ページ</a>` : ''}。
         ${card.est ? '経路の形は公開されていないため、バス停の間を OpenStreetMap の道路で経路探索して描いています（推定）。' : ''}</p>
     </div>`;

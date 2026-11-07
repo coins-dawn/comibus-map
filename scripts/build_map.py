@@ -9,6 +9,15 @@ Python 標準ライブラリのみ。
 """
 import argparse, collections, json, math, os
 
+# 特産品の目印 → 画面に出す名前（品目がまとまっている目印は、記事で見つかった言葉をそのまま出す）
+TOK_LABEL = {'apple': 'りんご', 'grape': 'ぶどう', 'peach': 'もも', 'cherry': 'さくらんぼ', 'strawberry': 'いちご', 'melon': 'メロン',
+             'mikan': 'みかん', 'yuzu': 'ゆず', 'pear': '梨', 'persimmon': '柿', 'chestnut': '栗', 'watermelon': 'すいか', 'tomato': 'トマト',
+             'lettuce': 'レタス', 'onion': 'たまねぎ', 'olive': 'オリーブ', 'tea': 'お茶', 'soba': 'そば', 'sake': '日本酒', 'whisky': 'ウイスキー',
+             'rice': 'お米', 'oyster': '牡蠣', 'crab': 'かに', 'squid': 'いか', 'shrimp': 'えび', 'eel': 'うなぎ', 'salt': '塩', 'cow': '牛',
+             'lotus': 'れんこん', 'lavender': 'ラベンダー', 'sunflower': 'ひまわり', 'bamboo': 'たけのこ', 'silk': '織物', 'pot': '焼き物',
+             'kokeshi': 'こけし', 'daruma': 'だるま', 'sword': '刃物', 'glass': 'ガラス', 'book': '和紙', 'fan': '扇子', 'comb': '漆器',
+             'bread': 'パン', 'dango': '団子', 'bun': 'まんじゅう', 'scallop': 'ほたて', 'garlic': 'にんにく', 'negi': 'ねぎ', 'daikon': '大根',
+             'cabbage': 'キャベツ', 'peanut': '落花生', 'konnyaku': 'こんにゃく', 'mushroom': 'きのこ'}
 CATS = ['castle', 'zoo', 'sky', 'ferry', 'onsen', 'museum', 'view', 'michi', 'beach', 'jinja', 'tera', 'station', 'library', 'park']
 REGION = {'Hokkaido': 0, 'Tohoku': 1, 'Kanto': 2, 'Chubu': 3, 'Kinki': 4, 'Chugoku': 5, 'Shikoku': 6, 'Kyushu': 7, 'Okinawa': 7}
 
@@ -230,6 +239,23 @@ def main():
     for k, v in research.items():
         if k != '_' and v.get('spec'):
             art[k] = v['spec'][:3]
+    # 専用の絵のないスポットには、市町村の特産品を右上の札に添える（scripts/local_specialty.py の出力。2026-11-07 ユーザー指示）
+    sfn = 'work/spotart/specialty.json'
+    if os.path.exists(sfn):
+        spec_muni = json.load(open(sfn, encoding='utf-8'))
+        ntok = 0
+        for sp in spots:
+            k = f"{sp[1]}|{sp[2]}|{sp[3]}"
+            if k in art:
+                continue
+            c = cards[sp[4][0]]
+            v = spec_muni.get(f"{c['pref']}|{c['org']}") or spec_muni.get(f"@{sp[2]}|{sp[3]}")
+            if v and v.get('marks'):
+                m = v['marks'][0]
+                w = TOK_LABEL.get(m) or v['words'][m][0]
+                art[k] = [sp[0], {'tok': m, 'tokw': w, 'town': v.get('near') or v.get('muni')}, []]
+                ntok += 1
+        print('特産品の札', ntok)
     with open(os.path.join(a.data, 'spotart.json'), 'w', encoding='utf-8') as fh:
         json.dump(art, fh, ensure_ascii=False, separators=(',', ':'))
     print('スポットの絵', len(art))

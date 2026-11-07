@@ -36,6 +36,7 @@
       実際にバスが走る道と違うことがあります。カードの説明に「推定」と出ている路線が該当します。</li>
     <li><b>アクセスの駅</b>: 「<a href="https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-S12-2024.html">国土数値情報（駅別乗降客数データ）</a>」（国土交通省）を加工して作成。駅からバス停までの道は OpenStreetMap の道路で経路探索しています。</li>
     <li><b>背景の地図</b>: <a href="https://maps.gsi.go.jp/development/ichiran.html">地理院タイル（淡色地図）</a>（国土地理院）、都道府県の形は <a href="https://www.naturalearthdata.com/">Natural Earth</a>（パブリックドメイン）。</li>
+    <li><b>名産品</b>（スポットの絵の右上の丸い札と、カードの「〇〇の名産」）: 日本語版 <a href="https://ja.wikipedia.org/">Wikipedia</a> の各市町村の記事の、特産・名産・産業などの記述から自動で拾った品目です。スポットそのものの特徴が見つからない場所にだけ添えています。
     <li><b>イラスト</b>: 自作。ロゴのバスは <a href="https://github.com/googlefonts/noto-emoji">Noto Emoji</a>（Apache License 2.0）、駅などの記号は <a href="https://pictogrammers.com/library/mdi/">Material Design Icons</a>（Apache License 2.0）。</li>
     <li><b>地図の表示</b>: <a href="https://maplibre.org/">MapLibre GL JS</a>（BSD 3-Clause License）。</li>
   </ul>
@@ -44,6 +45,7 @@
   <ul>
     <li>掲載している情報の正確性・完全性は保証されません。時刻・運賃・運行日は、お出かけ前に各自治体の最新の情報をご確認ください。</li>
     <li>運賃は GTFS の運賃表から、路線ごとのいちばん安い額といちばん高い額を出しています（0 円の区間は含めていません）。割引や乗り継ぎは反映していません。</li>
+    <li>名産品は記事の文から自動で拾ったもので、取り違えや、いまは盛んでない品目が含まれることがあります。
     <li>「さがす」の季節は、沿線のスポットの名前や種類（桜・アジサイ・紅葉・温泉など）から自動で付けた目安です。見頃の時期を一つずつ確かめたものではありません。</li>
   </ul>
   <p>このサービスが利用する公共交通データは、GTFSデータリポジトリにおいて提供されるものです。

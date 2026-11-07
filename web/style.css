@@ -166,6 +166,7 @@ a { color: inherit; }
 .info li { display: flex; gap: 8px; align-items: center; padding: 2px 0; }
 .info li svg { width: 26px; height: 26px; flex: none; background: #fffdf6; border-radius: 6px; }
 .info li small { color: #b9b3cc; }
+.info li small.tok { display: block; color: #f2c35a; font-size: 12px; }
 .info .lic { font-size: 11px; color: #b9b3cc; }
 .close { padding: 10px 30px; font-size: 15px; border-radius: 999px; border: 1.5px solid #b9b3cc; background: transparent; color: #fff; cursor: pointer; }
 

@@ -293,6 +293,22 @@ const SA = (() => {
     wisteria: (x, y) => `<path d="M${x - 11} ${y - 20} H${x + 11}" stroke="#8a5a33" stroke-width="2"/>` + [-8, -3, 2, 7].map((d, i) => `<path d="M${x + d} ${y - 20} Q${x + d - 2} ${y - 12 + i % 2 * 2} ${x + d} ${y - 6 + i % 2 * 2}" stroke="#9b6bb5" stroke-width="3.6" stroke-linecap="round" fill="none" stroke-dasharray="1.6 1"/>`).join(''),
     cat: (x, y) => `<ellipse cx="${x}" cy="${y - 5}" rx="6.5" ry="4.6" fill="#f2c35a" ${S(1.3)}/><circle cx="${x + 5}" cy="${y - 10}" r="4" fill="#f2c35a" ${S(1.2)}/><path d="M${x + 2.5} ${y - 13} l.5 -3.5 2 2.5 M${x + 7.5} ${y - 13} l-.5 -3.5 -2 2.5" fill="#f2c35a" ${S(.9)}/><path d="M${x - 6} ${y - 6} q-5 -2 -4 -7" stroke="${INK}" stroke-width="1.6" fill="none"/><path d="M${x + 3.5} ${y - 10} q.7 .7 1.4 0 M${x + 5.6} ${y - 10} q.7 .7 1.4 0" stroke="${INK}" stroke-width=".9" fill="none"/>`,
     fan: (x, y) => `<path d="M${x} ${y - 2} L${x - 11} ${y - 13} Q${x} ${y - 22} ${x + 11} ${y - 13} Z" fill="#e2483d" ${S(1.3)}/><path d="M${x} ${y - 2} L${x - 5} ${y - 17} M${x} ${y - 2} L${x} ${y - 18} M${x} ${y - 2} L${x + 5} ${y - 17}" stroke="#f2c35a" stroke-width="1"/><circle cx="${x}" cy="${y - 12}" r="2.6" fill="#fff"/>`,
+    // 土地の特産品（2026-11-07 追加）
+    scallop: (x, y) => `<path d="M${x} ${y - 1} L${x - 8} ${y - 9} Q${x - 7} ${y - 16} ${x} ${y - 16} Q${x + 7} ${y - 16} ${x + 8} ${y - 9} Z" fill="#f4c7a1" ${S(1.3)}/>
+      <path d="M${x} ${y - 1} L${x - 5} ${y - 14} M${x} ${y - 1} L${x} ${y - 16} M${x} ${y - 1} L${x + 5} ${y - 14}" stroke="#c98b4f" stroke-width="1"/><path d="M${x - 3} ${y - 1} H${x + 3} L${x + 2} ${y + 1} H${x - 2} Z" fill="#f4c7a1" ${S(1)}/>`,
+    garlic: (x, y) => `<path d="M${x} ${y - 15} Q${x + 1} ${y - 11} ${x + 6} ${y - 8} Q${x + 8} ${y - 1} ${x} ${y} Q${x - 8} ${y - 1} ${x - 6} ${y - 8} Q${x - 1} ${y - 11} ${x} ${y - 15} Z" fill="#fbf6ec" ${S(1.3)}/>
+      <path d="M${x} ${y - 11} Q${x - 4} ${y - 6} ${x - 2} ${y - .5} M${x} ${y - 11} Q${x + 4} ${y - 6} ${x + 2} ${y - .5}" stroke="#c9b99a" stroke-width="1" fill="none"/><path d="M${x - 3} ${y} h6" stroke="#c9b99a" stroke-width="1.4"/>`,
+    negi: (x, y) => `<path d="M${x - 2} ${y - 7} L${x - 5} ${y - 20} M${x + 2} ${y - 7} L${x + 5} ${y - 20} M${x} ${y - 7} V${y - 21}" stroke="#5fbf6f" stroke-width="2.6" stroke-linecap="round"/>
+      <rect x="${x - 2.6}" y="${y - 8}" width="5.2" height="8" rx="1.5" fill="#fff" ${S(1.2)}/><path d="M${x - 1.5} ${y} v1.8 M${x} ${y} v2 M${x + 1.5} ${y} v1.8" stroke="${INK}" stroke-width=".8"/>`,
+    daikon: (x, y) => `<path d="M${x - 3} ${y - 15} Q${x - 4} ${y - 4} ${x + 1} ${y + 1} Q${x + 4} ${y - 4} ${x + 3} ${y - 15} Z" fill="#fff" ${S(1.3)}/>
+      <path d="M${x - 1} ${y - 15} L${x - 5} ${y - 21} M${x} ${y - 15} V${y - 22} M${x + 1} ${y - 15} L${x + 5} ${y - 21}" stroke="#5fbf6f" stroke-width="2.4" stroke-linecap="round"/><path d="M${x - 2} ${y - 9} h2 M${x} ${y - 5} h2" stroke="#c9c9c9" stroke-width=".8"/>`,
+    imo: (x, y) => `<path d="M${x - 9} ${y - 4} Q${x - 8} ${y - 11} ${x} ${y - 10} Q${x + 8} ${y - 10} ${x + 9} ${y - 5} Q${x + 7} ${y} ${x} ${y - 1} Q${x - 8} ${y + 1} ${x - 9} ${y - 4} Z" fill="#b5734a" ${S(1.3)}/>
+      <path d="M${x - 4} ${y - 6} h1.5 M${x + 2} ${y - 7} h1.5 M${x} ${y - 3} h1.5" stroke="#7a4a2a" stroke-width="1" stroke-linecap="round"/><path d="M${x + 9} ${y - 5} q3 -3 2 -7" stroke="#5fbf6f" stroke-width="1.6" fill="none"/>`,
+    cabbage: (x, y) => `<circle cx="${x}" cy="${y - 7}" r="7.5" fill="#c9e8a0" ${S(1.4)}/><path d="M${x} ${y - 14} Q${x - 4} ${y - 7} ${x} ${y} M${x} ${y - 14} Q${x + 4} ${y - 7} ${x} ${y}" stroke="#8fbf5a" stroke-width="1.1" fill="none"/>
+      <path d="M${x - 7.5} ${y - 7} Q${x - 4} ${y - 2} ${x} ${y - .5} Q${x + 4} ${y - 2} ${x + 7.5} ${y - 7}" stroke="#8fbf5a" stroke-width="1.1" fill="none"/>`,
+    peanut: (x, y) => `<path d="M${x - 8} ${y - 5} Q${x - 9} ${y - 11} ${x - 4} ${y - 11} Q${x - 1} ${y - 11} ${x} ${y - 9} Q${x + 1} ${y - 11} ${x + 4} ${y - 11} Q${x + 9} ${y - 11} ${x + 8} ${y - 5} Q${x + 7} ${y} ${x + 3} ${y - 1} Q${x} ${y - 2} ${x - 3} ${y - 1} Q${x - 7} ${y} ${x - 8} ${y - 5} Z" fill="#e8c88a" ${S(1.3)}/>
+      <path d="M${x - 6} ${y - 7} h2 M${x - 4} ${y - 4} h2 M${x + 3} ${y - 8} h2 M${x + 4} ${y - 5} h2" stroke="#b9945a" stroke-width="1" stroke-linecap="round"/>`,
+    konnyaku: (x, y) => `<path d="M${x - 8} ${y} L${x - 6} ${y - 12} H${x + 8} L${x + 6} ${y} Z" fill="#9a9a9a" ${S(1.3)}/><path d="M${x - 3} ${y - 9} h1 M${x + 2} ${y - 7} h1 M${x - 1} ${y - 4} h1 M${x + 4} ${y - 3} h1" stroke="#5c5c5c" stroke-width="1.2" stroke-linecap="round"/>`,
     bamboo: (x, y) => [-3, 2].map((d) => `<rect x="${x + d - 1.4}" y="${y - 20}" width="2.8" height="20" fill="#7aa83e" ${S(.8)}/><path d="M${x + d - 1.4} ${y - 13} h2.8 M${x + d - 1.4} ${y - 6} h2.8" stroke="${INK}" stroke-width=".8"/>`).join('') + `<path d="M${x + 1} ${y - 16} q4 -2 7 0 M${x - 2} ${y - 10} q-4 -2 -7 0" stroke="#7aa83e" stroke-width="2" fill="none"/>`,
   };
   // 目印を置く位置（土台ごと。1 つ目・2 つ目）
@@ -313,7 +329,10 @@ const SA = (() => {
     }).join('');
     // キャラクターは 8 割に縮めて右下に（主役は左の建物と目印）。温泉は湯船の人だけ
     const ch = b === 'onsen' ? '' : `<g transform="translate(52 58) scale(.78) translate(-50 -58)">${(CHARA[b] || CHARA.museum)()}</g>`;
-    return `<g>${(BASE[b] || BASE.museum)(o)}${marks}${ch}</g>`;
+    // 土地の特産品（o.tok）: スポットそのものの特徴ではないので、右上の丸い札に小さく添える
+    const tok = o.tok && M[o.tok] ? `<g transform="translate(50 12)"><circle r="13.5" fill="#fff" stroke="${INK}" stroke-width="2"/>
+      <g transform="scale(1.05) translate(0 9)">${M[o.tok](0, 0)}</g></g>` : '';
+    return `<g>${(BASE[b] || BASE.museum)(o)}${marks}${ch}${tok}</g>`;
   }
   return { svg, M, BASE };
 })();
