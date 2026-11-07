@@ -99,6 +99,13 @@ body.aboutpage { margin: 0; background: #fff; color: #222; font-family: system-u
 
 /* さがす（季節・目的のフィルタ） */
 .filter { margin: 0 0 14px; }
+/* 100円コミバスガチャへの入口（ガチャの画面と同じ紫。2026-11-07 ユーザー指示） */
+.gacha-link { display: flex; align-items: center; gap: 10px; margin: 0 0 18px; padding: 10px 12px; border-radius: 12px; text-decoration: none;
+  background: linear-gradient(135deg, #3a2a5c, #241a3d); color: #fff3c4; box-shadow: 0 2px 0 #a8741a; }
+.gacha-link:hover { filter: brightness(1.12); }
+.gacha-link svg { width: 34px; height: 34px; flex: none; }
+.gacha-link b { display: block; font-size: 15px; font-weight: 900; color: #ffd75e; letter-spacing: .02em; }
+.gacha-link small { display: block; font-size: 11.5px; color: #e8e4f5; margin-top: 2px; }
 .fl-row { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; margin-bottom: 7px; }
 .fl-row small { width: 100%; font-size: 11.5px; font-weight: 700; color: #666; }
 .chip { font: inherit; font-size: 12.5px; font-weight: 700; padding: 4px 10px; border: 1px solid #ccc; background: #fff; color: #333; cursor: pointer; }

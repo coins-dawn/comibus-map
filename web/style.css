@@ -14,6 +14,7 @@ a { color: inherit; }
 .mode { display: flex; gap: 0; margin: 6px 0 4px; border: 2px solid #ffd75e; border-radius: 999px; overflow: hidden; }
 .mode button { font: inherit; font-size: 13px; font-weight: 800; padding: 6px 16px; border: 0; background: transparent; color: #ffd75e; cursor: pointer; }
 .mode button.on { background: #ffd75e; color: #3a2a5c; }
+.tomap { align-self: flex-start; margin: 10px 0 0 4px; font-size: 13px; font-weight: 700; color: #e8e4f5; text-decoration: none; }
 .linkbtn { margin: 14px 0 0; font: inherit; font-size: 13px; color: #ffd75e; background: none; border: 0; text-decoration: underline; cursor: pointer; }
 .lead { margin: 4px 0 10px; text-align: center; font-size: 14px; color: #e8e4f5; line-height: 1.6; }
 .lead b { color: #ffd75e; }
