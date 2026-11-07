@@ -205,7 +205,7 @@ const MACHINE = `<svg viewBox="0 0 200 270" class="machine" aria-label="ガチ�
   <rect x="38" y="152" width="124" height="34" rx="8" fill="#fff3c4" stroke="${INK}" stroke-width="2.4"/>
   <g transform="translate(46 156) scale(.42)">${ICONS.bus.replace('class="ic bob"', '')}</g>
   <text x="104" y="168" text-anchor="middle" font-size="12" font-weight="900" fill="${INK}">1かい</text>
-  <text x="104" y="181" text-anchor="middle" font-size="11" font-weight="900" fill="#e2483d">500円まで</text>
+  <text x="104" y="181" text-anchor="middle" font-size="11" font-weight="900" fill="#e2483d">100円</text>
   <rect x="141" y="160" width="14" height="20" rx="3" fill="#9aa3ad" stroke="${INK}" stroke-width="2"/><rect x="146.5" y="163" width="3" height="14" rx="1.5" fill="${INK}"/>
   <g class="handle"><circle cx="100" cy="212" r="22" fill="#fff" stroke="${INK}" stroke-width="3"/>
     <rect x="80" y="207" width="40" height="10" rx="5" fill="#f7b733" stroke="${INK}" stroke-width="2.4"/>
