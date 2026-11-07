@@ -172,6 +172,7 @@ def main():
 
     os.makedirs(os.path.join(a.data, 's'), exist_ok=True)
     cards = []
+    allspots = {}  # カードの id → 沿線（200m 以内）の目的のあるスポットすべて（ランキングの 1 位だけ書き出す）
     for fc in idx:
         if fc['yoyaku']:
             continue
@@ -206,6 +207,7 @@ def main():
                     break
             # 種類ごとの沿線のスポットの数（カードに載せる 6 か所に絞る前。ランキング「〇〇をいちばん多く通る」用）
             ncat = collections.Counter(PURPOSE[it[0]] for it in cand.values() if it[0] in PURPOSE)
+            allspots[f"{fc['k']}~{rs[0]}"] = [[it[0], it[1], round(it[2], 5), round(it[3], 5)] for it in cand.values() if it[0] in PURPOSE]
             cid = f"{fc['k']}~{rs[0]}"
             spots_out[str(rs[0])] = [[it[0], it[1], round(it[2], 5), round(it[3], 5)] for it in pick]
             cards.append({'id': cid, 'k': fc['k'], 'rs': rs, 'name': name, 'op': fc['name'], 'org': fc['org'], 'pref': fc['pref'],
@@ -215,6 +217,19 @@ def main():
         with open(os.path.join(a.data, 's', fc['k'] + '.json'), 'w', encoding='utf-8') as fh:
             json.dump(spots_out, fh, ensure_ascii=False, separators=(',', ':'))
     cards.sort(key=lambda c: c['km'])
+    # ランキング「〇〇をいちばん多く通る」の 1 位の路線の、その種類のスポットすべて（web/ranking.js と同じ決め方: 数が多い → 同数なら距離が短い）
+    rank = {}
+    for cat in sorted(set(PURPOSE.values())):
+        best = None
+        for c in cards:  # km の短い順なので、同数なら先に出た（短い）ほうが残る
+            n = c['ncat'].get(cat, 0)
+            if n and (best is None or n > best['ncat'].get(cat, 0)):
+                best = c
+        if best:
+            rank.setdefault(best['id'], {})[cat] = sorted((x for x in allspots[best['id']] if PURPOSE[x[0]] == cat), key=lambda x: x[1])
+    with open(os.path.join(a.data, 'rankspots.json'), 'w', encoding='utf-8') as fh:
+        json.dump(rank, fh, ensure_ascii=False, separators=(',', ':'))
+    print('ランキングの 1 位のスポット', {k: {c: len(v) for c, v in d.items()} for k, d in rank.items()})
     n = len(cards)
     for i, c in enumerate(cards):
         c['rare'] = 'SSR' if i < n * 0.08 else 'SR' if i < n * 0.30 else 'R'
