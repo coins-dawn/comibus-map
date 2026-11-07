@@ -59,7 +59,17 @@ body.aboutpage { margin: 0; background: #fff; color: #222; font-family: system-u
 @media (max-width: 420px) {
   .mbar .logo { font-size: 17px; letter-spacing: 0; }
   .brand img { width: 34px; height: auto; }
-  .about-link { font-size: 11.5px; }
+  /* 「このサービス／について」の 2 行にする（字の途中で折れないように） */
+  .about-link { font-size: 11px; line-height: 1.25; text-align: center; flex: none; }
+  .about-link span { display: block; }
+  .brand { min-width: 0; }
+}
+@media (max-width: 360px) {
+  .mbar .logo { font-size: 15px; }
+  .rank-btn { padding: 4px 8px; }
+}
+@media (max-width: 340px) {
+  .brand img { display: none; }  /* いちばん狭い画面はバスのアイコンを外し、名前とボタンを重ねない */
 }
 
 /* 左ペイン: ランキング（PC は常に出す。狭い画面はヘッダのボタンで開く） */
@@ -76,10 +86,12 @@ body.aboutpage { margin: 0; background: #fff; color: #222; font-family: system-u
 .rk-o { display: block; font-size: 11.5px; color: #555; margin-top: 2px; }
 .rk-v { display: block; font-size: 12.5px; font-weight: 700; color: #1a5fb4; margin-top: 2px; }
 .rank-note { font-size: 11px; color: #888; line-height: 1.6; margin: 6px 2px 0; }
-.rank-btn { display: none; margin-left: auto; font: inherit; font-size: 12px; font-weight: 700; border: 1px solid #ccc; border-radius: 999px; background: #fff; padding: 4px 10px; cursor: pointer; }
+.rank-btn { display: none; flex: none; white-space: nowrap; margin-left: auto; font: inherit; font-size: 12px; font-weight: 700; border: 1px solid #ccc; border-radius: 999px; background: #fff; padding: 4px 10px; cursor: pointer; }
 
 @media (max-width: 760px) {
-  .rank { transform: translateX(-100%); transition: transform .25s; width: min(300px, 86vw); box-shadow: 2px 0 12px rgba(0, 0, 0, .2); }
+  /* 狭い画面: 左端につけて隠す（left:12px のままだと 12px ぶん白い帯が残った。2026-11-07） */
+  .rank { left: 0; top: 52px; bottom: 0; transform: translateX(-100%); transition: transform .25s, visibility .25s; width: min(300px, 86vw); box-shadow: 2px 0 12px rgba(0, 0, 0, .2); visibility: hidden; }
+  body.rank-open .rank { visibility: visible; }
   body.rank-open .rank { transform: none; }
   .rank-btn { display: block; }
   .rank-btn + .about-link { margin-left: 10px; }
