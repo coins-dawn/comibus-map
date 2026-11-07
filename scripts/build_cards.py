@@ -15,6 +15,9 @@ import argparse, collections, glob, json, math, os, re
 # 種類（優先順）。数字が小さいほど先に載せる
 CATS = ['castle', 'zoo', 'sky', 'ferry', 'onsen', 'museum', 'view', 'michi', 'beach', 'jinja', 'tera', 'station', 'library', 'park']
 STOP_R = 200     # m
+# スポットの種類 → 「さがす」の目的（web/filter.js の SPOT_PURPOSE と同じ）
+PURPOSE = {'onsen': 'onsen', 'castle': 'castle', 'jinja': 'jisha', 'tera': 'jisha', 'museum': 'museum', 'michi': 'michi',
+           'beach': 'water', 'ferry': 'water', 'zoo': 'zoo', 'view': 'view', 'park': 'view', 'sky': 'view'}
 SEP = 300        # 同じカードのスポットどうしの最小の間隔（m）
 MAX_SPOTS, MAX_PER_CAT = 6, 2
 
@@ -201,11 +204,13 @@ def main():
                 per[it[0]] += 1
                 if len(pick) >= MAX_SPOTS:
                     break
+            # 種類ごとの沿線のスポットの数（カードに載せる 6 か所に絞る前。ランキング「〇〇をいちばん多く通る」用）
+            ncat = collections.Counter(PURPOSE[it[0]] for it in cand.values() if it[0] in PURPOSE)
             cid = f"{fc['k']}~{rs[0]}"
             spots_out[str(rs[0])] = [[it[0], it[1], round(it[2], 5), round(it[3], 5)] for it in pick]
             cards.append({'id': cid, 'k': fc['k'], 'rs': rs, 'name': name, 'op': fc['name'], 'org': fc['org'], 'pref': fc['pref'],
                           'fare': min(F['rfare'][r][0] for r in rs), 'fare_max': max(F['rfare'][r][1] for r in rs), 'nstops': len(used), 'km': round(length / 1000, 1), 'loop': loop,
-                          'kei': fc['kei'], 'nspots': len(pick), 'license': fc['license'], 'license_url': fc['license_url'],
+                          'kei': fc['kei'], 'nspots': len(pick), 'ncat': dict(ncat), 'license': fc['license'], 'license_url': fc['license_url'],
                           'est': bool(set(rs) & set(F.get('shape_est', []))), 'from': fc['from'], 'to': fc['to'], 'page': fc['page'], 'alt': fc['alt']})
         with open(os.path.join(a.data, 's', fc['k'] + '.json'), 'w', encoding='utf-8') as fh:
             json.dump(spots_out, fh, ensure_ascii=False, separators=(',', ':'))
