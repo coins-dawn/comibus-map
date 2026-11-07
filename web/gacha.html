@@ -5,13 +5,14 @@
 <meta name="robots" content="noindex">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>コミバスガチャ</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=46">
 </head>
 <body>
 <main>
   <section id="v-top" class="view">
     <h1 class="logo"><span>コミバス</span>ガチャ</h1>
-    <p class="lead">全国のコミュニティバスのカードを、<b>運賃の合計 500 円まで</b>で 3 枚引きます。</p>
+    <div class="mode" role="tablist"><button data-yen="100">100円ガチャ</button><button data-yen="500">500円ガチャ</button></div>
+    <p class="lead" id="lead"></p>
     <div class="machine-box" id="machine-box">
       <div id="machine"></div>
       <div class="drop" id="drop"></div>
@@ -22,12 +23,13 @@
   </section>
 
   <section id="v-result" class="view" hidden>
-    <h2 class="res-title">当たったカード</h2>
+    <h2 class="res-title" id="res-title">当たったカード</h2>
     <p class="total" id="total"></p>
     <div class="row" id="row"></div>
     <div class="dots" id="dots"></div>
-    <p class="hint">左右にスワイプして 3 枚を見られます。タップすると大きく見られます</p>
+    <p class="hint" id="hint">左右にスワイプして 3 枚を見られます。タップすると大きく見られます</p>
     <button id="again" class="pull">もう 1 回まわす</button>
+    <button id="back" class="linkbtn">100円 / 500円をえらびなおす</button>
   </section>
 </main>
 
@@ -40,9 +42,9 @@
     スポット: © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>（ODbL）。背景地図: <a href="https://maps.gsi.go.jp/development/ichiran.html">地理院タイル</a>（淡色地図）。イラストは自作。
     時刻や運賃は変わることがあります。乗る前に各自治体の案内を確かめてください。</p>
 </footer>
-<script src="icons.js"></script>
-<script src="card.js"></script>
-<script src="spotart.js"></script>
-<script src="app.js"></script>
+<script src="icons.js?v=46"></script>
+<script src="card.js?v=46"></script>
+<script src="spotart.js?v=46"></script>
+<script src="app.js?v=46"></script>
 </body>
 </html>
